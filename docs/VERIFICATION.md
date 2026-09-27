@@ -1,5 +1,10 @@
 # Verification record — 2026-09-27
 
+## 0.7.0 fixed operator UI candidate
+
+Android Test mode now uses a fixed, overflow-hidden viewport and disables WebView overscroll/scrollbars. The center preview is intentionally non-interactive; only the pan/tilt joysticks accept drag input. The landscape layout narrows the side controls and reduces header/control chrome to increase camera area while keeping the existing offline simulation behavior. Hardware behavior and physical tracking remain unchanged and still require bench validation.
+
+
 ## Signing setup follow-up
 
 The Android release workflow now accepts separate keystore/key passwords, a configurable alias and an expected signing-certificate SHA-256 fingerprint. The APK is checked against that fingerprint before publication. CI runs 36319654168 (project tests) and 36319654144 (debug APK and disposable-key signing path) passed. GitHub has `SNAP_GO_KEY_ALIAS=snapgo`, but its three signing secrets and certificate fingerprint variable are absent as of 2026-09-27 20:42 Asia/Manila. The owner must provide and back up a long-lived signing key before the first stable update. The debug APK retains a disposable signing identity.

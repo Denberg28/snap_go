@@ -63,7 +63,10 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   assert.notEqual(await testPage.locator('#scene').getAttribute('data-world'),still);
   const scene=await testPage.locator('#scene').boundingBox();
   assert.ok(scene.height>=240,`Landscape scene too short: ${scene.height}`);
-  assert.ok(scene.width>440,`Landscape scene too narrow: ${scene.width}`);
+  assert.ok(scene.width>520,`Landscape scene too narrow: ${scene.width}`);
+  assert.ok(await testPage.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1),'Test UI must not vertically scroll');
+  assert.ok(await testPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Test UI must not horizontally scroll');
+  assert.equal(await testPage.evaluate(()=>getComputedStyle(document.body).overflow),'hidden');
   await testPage.click('#track');
   await testPage.waitForFunction(()=>Number(document.querySelector('#scene').dataset.error)<70,null,{timeout:6000});
   await testPage.waitForTimeout(1200);
@@ -72,6 +75,6 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await testPage.waitForFunction(()=>Number(document.querySelector('#scene').dataset.error)<14,null,{timeout:5000});
   assert.deepEqual(testErrors,[]);assert.deepEqual(network,[]);
   assert.ok(await testPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-  console.log('Offline test scene passed: virtual joystick, synthetic tracking, moving/stationary target, reset, landscape layout; zero network requests');
+  console.log('Offline test scene passed: fixed viewport, enlarged camera pane, virtual joystick, synthetic tracking, moving/stationary target, reset; zero network requests');
  }finally{if(browser)await browser.close();proc.kill('SIGTERM');}
 })().catch(e=>{console.error(e);proc.kill('SIGTERM');process.exitCode=1;});

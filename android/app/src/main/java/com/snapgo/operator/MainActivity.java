@@ -4,11 +4,14 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -16,7 +19,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.view.WindowInsets;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -31,8 +33,11 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        getWindow().setStatusBarColor(Color.rgb(12, 20, 27));
-        getWindow().setNavigationBarColor(Color.rgb(12, 20, 27));
+        getWindow().setStatusBarColor(Color.rgb(248, 246, 252));
+        getWindow().setNavigationBarColor(Color.rgb(248, 246, 252));
+        int systemUi = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (Build.VERSION.SDK_INT >= 26) systemUi |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        getWindow().getDecorView().setSystemUiVisibility(systemUi);
         updater = new AppUpdater(this);
         if (state != null && state.getBoolean("test_mode", false)) showTest();
         else showConnect(null);
@@ -91,9 +96,44 @@ public final class MainActivity extends Activity {
         if (browser != null && livePage) {
             switching = true;
             stopControl();
-            // Give the explicit STOP time to reach the Pi before removing WebView.
             handler.postDelayed(() -> { switching = false; disposeBrowser(); showTest(); }, 500);
         } else { disposeBrowser(); showTest(); }
+    }
+
+    private int dp(float value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    private GradientDrawable rounded(int fill, int stroke, float radiusDp) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(fill);
+        drawable.setCornerRadius(dp(radiusDp));
+        drawable.setStroke(dp(1), stroke);
+        return drawable;
+    }
+
+    private Button topButton(String label, boolean active) {
+        Button button = new Button(this);
+        button.setText(label);
+        button.setAllCaps(false);
+        button.setTextSize(14);
+        button.setTextColor(active ? Color.WHITE : Color.rgb(103, 78, 148));
+        button.setBackground(rounded(
+                active ? Color.rgb(119, 87, 177) : Color.rgb(240, 235, 248),
+                active ? Color.rgb(119, 87, 177) : Color.rgb(226, 218, 239),
+                15));
+        button.setMinimumHeight(0);
+        button.setMinHeight(0);
+        button.setMinimumWidth(0);
+        button.setMinWidth(0);
+        button.setPadding(dp(10), 0, dp(10), 0);
+        return button;
+    }
+
+    private LinearLayout.LayoutParams tabParams() {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(46), 1);
+        params.setMargins(dp(4), 0, dp(4), 0);
+        return params;
     }
 
     private void shell(boolean live) {
@@ -102,7 +142,7 @@ public final class MainActivity extends Activity {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.rgb(12, 20, 27));
+        root.setBackgroundColor(Color.rgb(248, 246, 252));
         if (Build.VERSION.SDK_INT >= 35) {
             root.setOnApplyWindowInsetsListener((view, insets) -> {
                 android.graphics.Insets safe = insets.getInsets(
@@ -112,19 +152,14 @@ public final class MainActivity extends Activity {
             });
         }
         LinearLayout tabs = new LinearLayout(this);
-        tabs.setPadding(10, 8, 10, 8);
-        Button liveButton = new Button(this);
-        liveButton.setText("LIVE");
-        liveButton.setEnabled(!live);
-        Button testButton = new Button(this);
-        testButton.setText("TEST");
-        testButton.setEnabled(live);
-        tabs.addView(liveButton, new LinearLayout.LayoutParams(0, -2, 1));
-        tabs.addView(testButton, new LinearLayout.LayoutParams(0, -2, 1));
-        Button updateButton = new Button(this);
-        updateButton.setText("↻ Update");
-        tabs.addView(updateButton, new LinearLayout.LayoutParams(0, -2, 1));
-        root.addView(tabs);
+        tabs.setPadding(dp(6), dp(6), dp(6), dp(5));
+        Button liveButton = topButton("Live", live);
+        Button testButton = topButton("Test", !live);
+        Button updateButton = topButton("Update", false);
+        tabs.addView(liveButton, tabParams());
+        tabs.addView(testButton, tabParams());
+        tabs.addView(updateButton, tabParams());
+        root.addView(tabs, new LinearLayout.LayoutParams(-1, dp(57)));
         updateButton.setOnClickListener(v -> updater.check());
         liveButton.setOnClickListener(v -> { disposeBrowser(); showConnect(null); });
         testButton.setOnClickListener(v -> selectTest());
@@ -138,14 +173,14 @@ public final class MainActivity extends Activity {
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(24, 18, 24, 24);
         TextView title = new TextView(this);
-        title.setText("Snap Go · Pi connection"); title.setTextSize(22); title.setTextColor(Color.WHITE);
+        title.setText("Snap Go · Pi connection"); title.setTextSize(22); title.setTextColor(Color.rgb(42, 38, 49));
         form.addView(title);
         TextView hint = new TextView(this);
         hint.setText("Connect phone and Pi to the same trusted Wi-Fi. Start Snap Go on the Pi with --host 0.0.0.0. Test works offline without a Pi.");
-        hint.setTextColor(Color.LTGRAY); form.addView(hint);
+        hint.setTextColor(Color.rgb(111, 105, 120)); form.addView(hint);
         EditText address = new EditText(this);
-        address.setSingleLine(true); address.setTextColor(Color.WHITE);
-        address.setHintTextColor(Color.GRAY);
+        address.setSingleLine(true); address.setTextColor(Color.rgb(42, 38, 49));
+        address.setHintTextColor(Color.rgb(145, 138, 154));
         address.setHint("http://192.168.1.50:8080");
         address.setText(getPreferences(MODE_PRIVATE).getString("pi_address", ""));
         form.addView(address);
@@ -167,7 +202,14 @@ public final class MainActivity extends Activity {
 
     private WebView newBrowser(boolean network) {
         WebView view = new WebView(this);
-        view.setBackgroundColor(Color.rgb(12, 20, 27));
+        view.setBackgroundColor(network ? Color.rgb(12, 20, 27) : Color.rgb(248, 246, 252));
+        view.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        view.setVerticalScrollBarEnabled(false);
+        view.setHorizontalScrollBarEnabled(false);
+        view.setNestedScrollingEnabled(false);
+        view.getSettings().setSupportZoom(false);
+        view.getSettings().setBuiltInZoomControls(false);
+        view.getSettings().setDisplayZoomControls(false);
         view.getSettings().setJavaScriptEnabled(true);
         view.getSettings().setAllowFileAccess(false);
         view.getSettings().setAllowContentAccess(false);

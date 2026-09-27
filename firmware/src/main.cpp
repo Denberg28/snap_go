@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <esp_task_wdt.h>
 #include "protocol.h"
-// Snap_Go 0.6.0. UART0 via DevKit USB-to-UART connector, not native USB CDC.
+// Snap_Go 0.7.0. UART0 via DevKit USB-to-UART connector, not native USB CDC.
 constexpr uint8_t PAN_PIN=5, TILT_PIN=6, STOP_PIN=7;
 snap::Guard guard;
 uint8_t buffer[snap::SIZE]; size_t used=0;
@@ -20,7 +20,6 @@ void loop() {
   esp_task_wdt_reset();
   uint32_t now=millis(); bool stop=digitalRead(STOP_PIN)==LOW;
   guard.check(now,stop);
-  // Bounded read budget: malformed input cannot starve watchdog or STOP sampling.
   for(int budget=64;budget>0&&Serial.available();--budget) {
     buffer[used++]=uint8_t(Serial.read());
     if(used==snap::SIZE) {
@@ -38,7 +37,6 @@ void loop() {
   if(uint32_t(now-lastTick)>=20) {
     lastTick=now;guard.step();
     if(guard.enabled) pwmStarted=true;
-    // Stop/timeouts hold last commanded position, avoiding a gravity-driven drop.
     if(pwmStarted) { pwm(0,guard.pan);pwm(1,guard.tilt); }
   }
   delay(1);

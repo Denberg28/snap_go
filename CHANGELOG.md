@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 — 2026-09-27 — fixed operator UI candidate
+
+- Locked the Android Test screen to a fixed viewport so the camera/control layout no longer drags or scrolls.
+- Reworked the APK shell and Test screen with a cleaner TeleRC-inspired card/navigation treatment.
+- Increased the usable center camera pane by narrowing the pan/tilt side controls and reducing vertical chrome.
+- Kept joystick interaction isolated to the two side controls while the center preview is non-interactive and stable.
+- Preserved moving/stationary target simulation, detection toggle, tracking, center, reset and update workflows.
+
 ## 0.6.0 — 2026-09-27 — bench-testing candidate
 
 - Enlarged the landscape Test camera scene and compacted adjacent controls.
