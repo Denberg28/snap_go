@@ -16,6 +16,10 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await page.goto('http://127.0.0.1:8089');await page.fill('#token',token);await page.click('#connect');
   await page.waitForFunction(()=>document.querySelector('#connection').textContent==='Connected locally');
   assert.equal(await page.isVisible('#simulation'),true);assert.equal(await page.isVisible('#placeholder'),false);
+  await page.evaluate(()=>document.documentElement.dataset.theme='light');
+  assert.equal(await page.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(248, 246, 252)');
+  await page.evaluate(()=>document.documentElement.dataset.theme='dark');
+  assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).backgroundColor),'rgb(12, 20, 27)');
   await page.click('#enable');await page.waitForFunction(()=>document.querySelector('#armed').textContent==='ENABLED');
   const stick=await page.locator('#panStick').boundingBox();
   await page.mouse.move(stick.x+stick.width*.8,stick.y+stick.height*.5);
@@ -41,6 +45,10 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   testPage.on('request',r=>{if(r.url().startsWith('http'))network.push(r.url());});
   await testPage.goto(pathToFileURL(path.resolve('android/app/src/main/assets/test.html')).href);
   assert.match(await testPage.locator('body').innerText(),/OFFLINE/);
+  await testPage.evaluate(()=>document.documentElement.dataset.theme='dark');
+  assert.equal(await testPage.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(12, 20, 27)');
+  await testPage.evaluate(()=>document.documentElement.dataset.theme='light');
+  assert.equal(await testPage.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(248, 246, 252)');
   const virtual=await testPage.locator('#panStick').boundingBox();
   await testPage.mouse.move(virtual.x+virtual.width*.8,virtual.y+virtual.height*.5);
   await testPage.mouse.down();

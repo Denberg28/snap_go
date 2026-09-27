@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 — 2026-09-27 — light/dark theme candidate
+
+- Added a compact sun/moon theme toggle beside the Live mode menu.
+- Persisted the selected light or dark theme between app launches.
+- Applied the theme to the native Android shell and Pi-hosted Live dashboard.
+- Carried the saved appearance into Test mode without changing camera/tracking behavior.
+
+
 ## 0.8.0 — 2026-09-27 — compact navigation candidate
 
 - Replaced the full-width Live / Test / Update tab strip with a compact upper-left mode menu.
