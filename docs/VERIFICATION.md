@@ -1,3 +1,6 @@
+## 0.11.2 UI layout
+Mode menu overlays the upper PAN column; Servo toggle occupies the upper TILT column. Camera spans both console rows. Android device layout and gesture validation pending.
+
 ## 0.11.1 layout correction
 Touch selection and button widths corrected; Android and device review pending.
 

@@ -24,3 +24,8 @@ button{height:31px;border:1px solid var(--line);border-radius:9px;background:col
 
 /* Target annotations use normalized video coordinates. */
 .boxes{position:absolute;inset:0;z-index:3;pointer-events:none}.candidate{position:absolute;border:2px solid #f4c86c;box-shadow:0 0 0 1px #101820;font-size:10px;color:#fff}.candidate.selected{border-color:#67dfbc}.candidate span{position:absolute;top:-17px;left:-2px;background:#17232a;padding:1px 4px;white-space:nowrap}.selection-box{position:absolute;z-index:5;border:2px dashed #fff;background:#ffffff20;pointer-events:none}.viewport{touch-action:none}#placeholder{color:#bed0db}.side output{color:var(--text)}.statusline{color:var(--text)}.side-button.on{background:var(--green);color:#102a25}
+
+.console{grid-template-rows:36px minmax(0,1fr)}
+.pan-side{grid-column:1;grid-row:2}.tilt-side{grid-column:3;grid-row:2}
+.center{grid-column:2;grid-row:1/3}
+.top-servo{grid-column:3;grid-row:1;width:100%;height:30px;align-self:start;padding:0 2px;font-size:10px;white-space:nowrap}

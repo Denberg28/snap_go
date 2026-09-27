@@ -18,6 +18,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -28,6 +29,8 @@ import java.nio.charset.StandardCharsets;
 public final class MainActivity extends Activity {
     private WebView browser;
     private LinearLayout root;
+    private LinearLayout navigation;
+    private Button menuButton;
     private boolean livePage = true;
     private boolean switching = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -164,6 +167,10 @@ public final class MainActivity extends Activity {
         android.view.MenuItem liveItem = popup.getMenu().add("Live");
         android.view.MenuItem testItem = popup.getMenu().add("Test");
         popup.getMenu().add("Check for update");
+        if (live) {
+            popup.getMenu().add("Pi connection");
+            popup.getMenu().add("Switch theme");
+        }
         liveItem.setEnabled(!live);
         testItem.setEnabled(live);
         popup.setOnMenuItemClickListener(item -> {
@@ -175,6 +182,14 @@ public final class MainActivity extends Activity {
             }
             if ("Test".equals(label)) {
                 selectTest();
+                return true;
+            }
+            if ("Pi connection".equals(label)) {
+                selectConnection();
+                return true;
+            }
+            if ("Switch theme".equals(label)) {
+                setTheme(!darkTheme, null);
                 return true;
             }
             if ("Check for update".equals(label)) {
@@ -201,10 +216,10 @@ public final class MainActivity extends Activity {
                 return insets;
             });
         }
-        LinearLayout navigation = new LinearLayout(this);
+        navigation = new LinearLayout(this);
         navigation.setGravity(Gravity.CENTER_VERTICAL);
         navigation.setPadding(dp(7), dp(3), dp(7), dp(3));
-        Button menuButton = navButton(live ? "Live  ▾" : "Test  ▾");
+        menuButton = navButton(live ? "Live  ▾" : "Test  ▾");
         LinearLayout.LayoutParams menuParams = new LinearLayout.LayoutParams(dp(96), dp(30));
         navigation.addView(menuButton, menuParams);
         Button themeButton = null;
@@ -225,6 +240,18 @@ public final class MainActivity extends Activity {
         menuButton.setOnClickListener(v -> showNavigationMenu(menuButton, live));
         setContentView(root);
         if (Build.VERSION.SDK_INT >= 35) root.requestApplyInsets();
+    }
+
+    private void attachBrowserOverlay() {
+        root.removeView(navigation);
+        navigation.removeView(menuButton);
+        FrameLayout stage = new FrameLayout(this);
+        root.addView(stage, new LinearLayout.LayoutParams(-1, 0, 1));
+        stage.addView(browser, new FrameLayout.LayoutParams(-1, -1));
+        FrameLayout.LayoutParams nav = new FrameLayout.LayoutParams(
+                dp(90), dp(30), Gravity.TOP | Gravity.LEFT);
+        nav.setMargins(dp(8), dp(6), 0, 0);
+        stage.addView(menuButton, nav);
     }
 
     private void showConnect(String error) {
@@ -286,9 +313,6 @@ public final class MainActivity extends Activity {
     private void showDashboard(String selected) {
         shell(true);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-        Button changePi = new Button(this);
-        changePi.setText("⚙ Pi connection");
-        root.addView(changePi);
         browser = newBrowser(true);
         browser.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
@@ -299,8 +323,7 @@ public final class MainActivity extends Activity {
                 applyBrowserTheme(view);
             }
         });
-        root.addView(browser, new LinearLayout.LayoutParams(-1, 0, 1));
-        changePi.setOnClickListener(v -> selectConnection());
+        attachBrowserOverlay();
         browser.loadUrl(selected + "/");
     }
 
@@ -323,7 +346,7 @@ public final class MainActivity extends Activity {
                 applyBrowserTheme(view);
             }
         });
-        root.addView(browser, new LinearLayout.LayoutParams(-1, 0, 1));
+        attachBrowserOverlay();
         try (InputStream stream = getAssets().open("test.html")) {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             byte[] chunk = new byte[4096]; int length;

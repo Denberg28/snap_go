@@ -1,3 +1,7 @@
+## 0.11.2 — expanded camera layout
+- Move mode menu and servo toggle into the upper side columns; extend camera to the top of the console.
+- Clear joystick panes while retaining target drag selection.
+
 ## 0.11.1 — layout and touch fix
 - Restore Test canvas drag selection and fit side pane buttons.
 
