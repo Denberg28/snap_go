@@ -14,8 +14,10 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
   const page=await browser.newPage({viewport:{width:1280,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:8089');await page.fill('#token',token);await page.click('#connect');
-  await page.waitForFunction(()=>document.querySelector('#connection').textContent==='Connected locally');
+  await page.waitForFunction(()=>document.querySelector('#connection').textContent==='Connected');
   assert.equal(await page.isVisible('#simulation'),true);assert.equal(await page.isVisible('#placeholder'),false);
+  await page.click('#f1');await page.waitForFunction(()=>document.querySelector('#f1').classList.contains('on'));
+  assert.equal(await page.locator('#f1').getAttribute('aria-pressed'),'true');
   await page.evaluate(()=>document.documentElement.dataset.theme='light');
   assert.equal(await page.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(248, 246, 252)');
   await page.evaluate(()=>document.documentElement.dataset.theme='dark');
@@ -54,6 +56,8 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await testPage.mouse.down();
   await testPage.waitForFunction(()=>Number(document.querySelector('#panValue').textContent)>1510);
   await testPage.mouse.up();
+  await testPage.click('#f1');
+  assert.equal(await testPage.locator('#f1').getAttribute('aria-pressed'),'true');
   await testPage.click('#track');
   assert.match(await testPage.locator('#status').innerText(),/Synthetic target tracking/);
   await testPage.click('#toggleDetection');

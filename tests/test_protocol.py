@@ -1,6 +1,6 @@
 import random
 import pytest
-from snap_go.protocol import Parser, CMD, ACK, SIZE, encode, decode
+from snap_go.protocol import Parser, CMD, ACK, SIZE, F1, F2, F3, encode, decode
 
 
 def test_crc_known_vector():
@@ -34,3 +34,7 @@ def test_random_noise_bounded():
     p = Parser()
     p.feed(random.Random(32).randbytes(100000))
     assert len(p.buffer) < SIZE
+
+def test_function_flags_roundtrip():
+    frame = decode(encode(CMD, 7, 1500, 1500, F1 | F2 | F3))
+    assert frame["flags"] & (F1 | F2 | F3) == F1 | F2 | F3

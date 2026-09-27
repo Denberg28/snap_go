@@ -26,8 +26,10 @@ output{font-size:9px;color:var(--purple);font-weight:700;font-variant-numeric:ta
 .badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;border:1px solid #b8d8cf;background:#e8f5f1dd;color:var(--green);font-size:9px;font-weight:700;letter-spacing:.04em;white-space:nowrap;backdrop-filter:blur(6px)}
 .readout{height:22px;display:inline-flex;align-items:center;padding:0 7px;border-radius:999px;background:#101820c7;color:#d8e0e6;font-size:9px;white-space:nowrap;font-variant-numeric:tabular-nums;backdrop-filter:blur(6px)}
 #detect.off{background:#f3f0f6dd;color:var(--muted);border-color:#d9d2e1}
-.controlbar{min-width:0;display:flex;align-items:center;gap:6px;padding:4px 6px;overflow:hidden}
-.controls{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}
+.controlbar{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px;padding:4px 6px;overflow:hidden}
+.controls,.aux-controls{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}
+.aux-controls{justify-self:end}
+.function{min-width:38px}.function.on{background:var(--green);border-color:var(--green);color:#102a25}
 button,select{height:31px;border:1px solid var(--line);border-radius:9px;background:var(--purpleSoft);color:var(--text);padding:0 9px;font:inherit;font-size:10px;outline:none}
 button{font-weight:650}button.active{background:var(--purple);border-color:var(--purple);color:#fff}button.stop{background:#fff1f1;border-color:#efc5c8;color:#9f4f54}html[data-theme="dark"] button.stop{background:#3a2024;border-color:#684047;color:#ffb1b7}select{max-width:112px}
 .status{margin-left:auto;min-width:0;max-width:27vw;color:var(--muted);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -57,7 +59,7 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
-let pan=1500,tilt=1500,tracking=false,detect=true,phase=0,last=performance.now();
+let pan=1500,tilt=1500,tracking=false,detect=true,phase=0,last=performance.now(),functions=[false,false,false];
 const axis={pan:{el:$('panStick'),value:0,id:null},tilt:{el:$('tiltStick'),value:0,id:null}};
 function sizeScene(){const bounds=canvas.getBoundingClientRect();canvas.width=Math.max(1,Math.round(bounds.width));canvas.height=Math.max(1,Math.round(bounds.height));}
 new ResizeObserver(sizeScene).observe(canvas);sizeScene();
@@ -69,7 +71,8 @@ function mode(track){tracking=track;$('manual').classList.toggle('active',!track
 $('manual').onclick=()=>mode(false);$('track').onclick=()=>mode(true);
 $('toggleDetection').onclick=()=>{detect=!detect;$('toggleDetection').textContent=detect?'Detection off':'Detection on';$('detect').textContent=detect?'DETECTION ON':'DETECTION OFF';$('detect').classList.toggle('off',!detect);};
 $('center').onclick=()=>{pan=tilt=1500;};
-$('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';for(const name of Object.keys(axis))release(name);};
+for(let i=1;i<=3;i++)$('f'+i).onclick=()=>{functions[i-1]=!functions[i-1];const b=$('f'+i);b.classList.toggle('on',functions[i-1]);b.setAttribute('aria-pressed',String(functions[i-1]));b.textContent='F'+i+(functions[i-1]?' ON':'');};
+$('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';functions=[false,false,false];for(let i=1;i<=3;i++){const b=$('f'+i);b.classList.remove('on');b.setAttribute('aria-pressed','false');b.textContent='F'+i}for(const name of Object.keys(axis))release(name);};
 function paint(time){
  const dt=clamp((time-last)/1000,0,.05);last=time;if($('motion').value==='moving')phase+=dt;
  const width=canvas.width,height=canvas.height,kind=$('sample').value;

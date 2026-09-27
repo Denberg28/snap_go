@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 — 2026-09-27 — live operator + function servos
+
+- Rebuilt the connected Live screen with the same fixed three-pane operator layout used by Test.
+- Live center pane now displays the real Pi camera feed while retaining pan/tilt, tracking, centering, status and settings.
+- Added F1/F2/F3 buttons at the far right of the bottom control pane in both Test and Live.
+- Wired F1/F2/F3 through the Pi/serial protocol to ESP32-S3 GPIO 8/9/10 as independent 50 Hz servo outputs.
+- Function outputs fail OFF on STOP, browser lease expiry, serial link loss, firmware watchdog timeout or STOP input.
+
+
 ## 0.9.0 — 2026-09-27 — light/dark theme candidate
 
 - Added a compact sun/moon theme toggle beside the Live mode menu.

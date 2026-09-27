@@ -285,6 +285,7 @@ public final class MainActivity extends Activity {
 
     private void showDashboard(String selected) {
         shell(true);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         Button changePi = new Button(this);
         changePi.setText("⚙ Pi connection");
         root.addView(changePi);

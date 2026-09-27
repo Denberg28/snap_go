@@ -4,7 +4,7 @@
 int main() {
   using namespace snap;
   assert(crc((const uint8_t*)"123456789",9)==0x29b1);
-  Guard g;Command off{1,1500,1500,false},on{2,1900,1100,true};
+  Guard g;Command off{1,1500,1500,false,0},on{2,1900,1100,true,0};
   assert(!g.accept(on,0,false)); // boot refuses enabled packets
   assert(g.accept(off,0,false));assert(g.accept(on,1,false));
   assert(!g.accept(on,2,false)); // replay cannot refresh watchdog
@@ -15,6 +15,8 @@ int main() {
   g.check(356,true);assert(!g.enabled&&g.fault);
   off.seq=6;g.accept(off,357,true);on.seq=7;assert(!g.accept(on,358,false));
   g.accept(off,359,false);assert(g.accept(on,360,false));
+  Command aux{8,1500,1500,false,uint8_t(F1|F3)};assert(g.accept(aux,361,false));
+  assert(g.functions==(F1|F3));g.check(800,false);assert(g.functions==0);
   for(int i=0;i<1000;i++){g.step();}
   assert(g.pan==1900&&g.tilt==1100);
   Guard wrap;off.seq=0xffffffff;wrap.accept(off,0xfffffff0,false);on.seq=0;

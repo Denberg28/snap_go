@@ -89,9 +89,11 @@ class Controller:
         self.fps = 0.0
         self.link_ok = False
         self.actual = None
+        self.functions = [False, False, False]
 
     def stop(self, reason="Disabled by operator"):
         self.enabled = False
+        self.functions = [False, False, False]
         self.reason = reason
         self.detection = None
         self.error = [0.0, 0.0]
@@ -145,7 +147,7 @@ class Controller:
             self.error = [0.0, 0.0]  # hold immediately; no blind scanning
 
     def tick(self, now, dt):
-        if not self.enabled:
+        if not self.enabled and not any(self.functions):
             return
         if not self.link_ok:
             self.stop("Serial link lost; re-enable required")
@@ -195,5 +197,6 @@ class Controller:
             camera_ok=now - self.frame_time <= 0.75,
             fps=round(self.fps, 1),
             target=self.detection,
+            functions=list(self.functions),
             config=asdict(self.config),
         )

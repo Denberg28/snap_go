@@ -6,6 +6,10 @@ import struct
 MAGIC = b"SG"
 CMD, ACK = 1, 2
 ENABLED, FAULT = 1, 2
+F1, F2, F3 = 4, 8, 16
+FUNCTION_MASK = F1 | F2 | F3
+CONTROL_MASK = ENABLED | FUNCTION_MASK
+ACK_MASK = CONTROL_MASK | FAULT
 BODY = struct.Struct("<2sBBIHHBB")
 SIZE = 16
 
@@ -21,12 +25,13 @@ def decode(frame):
     ):
         raise ValueError("CRC or length")
     magic, version, kind, seq, pan, tilt, flags, reserved = BODY.unpack(frame[:14])
+    allowed = CONTROL_MASK if kind == CMD else ACK_MASK
     if (
         magic != MAGIC
         or version != 1
         or kind not in (CMD, ACK)
         or reserved
-        or flags & ~3
+        or flags & ~allowed
         or (kind == CMD and flags & FAULT)
     ):
         raise ValueError("Protocol header")

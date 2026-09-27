@@ -50,6 +50,8 @@ def test_operator_flow_persistence_and_lease(app):
         call(url + "/api/control", {"action": "move", "pan": 1600, "tilt": 1500})[0]
         == 200
     )
+    f1 = call(url + "/api/control", {"action": "function", "index": 1, "enabled": True})[1]
+    assert f1["functions"] == [True, False, False]
     assert call(url + "/api/control", {"action": "hold"})[0] == 200
     assert r.control.target == [r.control.pan, r.control.tilt]
     assert (
@@ -63,9 +65,10 @@ def test_operator_flow_persistence_and_lease(app):
         )[0]
         == 400
     )
-    # Closing/losing browser stops motion without relying on a stop request.
+    # Closing/losing browser stops motion and function outputs without relying on a stop request.
     time.sleep(1.2)
-    assert not call(url + "/api/status")[1]["enabled"]
+    expired = call(url + "/api/status")[1]
+    assert not expired["enabled"] and expired["functions"] == [False, False, False]
     cfg = asdict(r.control.config)
     cfg["pan_reverse"] = True
     assert call(url + "/api/control", {"action": "config", "config": cfg})[0] == 200

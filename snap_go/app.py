@@ -93,7 +93,7 @@ class Runtime:
                     # Tick first: never send an enabled command after a lease/vision expiry.
                     c.tick(now, now - previous)
                     healthy, actual = self.link.step(
-                        now, round(c.pan), round(c.tilt), c.enabled
+                        now, round(c.pan), round(c.tilt), c.enabled, c.functions
                     )
                     c.link_ok = healthy and (
                         self.sim_link if self.args.simulate else True
@@ -123,6 +123,7 @@ class Runtime:
                 round(self.control.pan),
                 round(self.control.tilt),
                 False,
+                (False, False, False),
             )
         finally:
             self.link.close()
@@ -144,8 +145,18 @@ class Runtime:
             elif op == "enable":
                 c.enable(payload.get("mode"), now)
             elif op == "lease":
-                if c.enabled:
+                if c.enabled or any(c.functions):
                     c.lease = now
+            elif op == "function":
+                index = payload.get("index")
+                enabled = payload.get("enabled")
+                if type(index) is not int or index not in (1, 2, 3) or type(enabled) is not bool:
+                    raise ValueError("Function requires index 1-3 and boolean enabled")
+                if not c.link_ok:
+                    raise ValueError("ESP32 link is not ready")
+                c.functions[index - 1] = enabled
+                c.lease = now
+                c.reason = f"F{index} {'ON' if enabled else 'OFF'}"
             elif op == "move":
                 if not c.enabled or c.mode != "manual":
                     raise ValueError("Enable manual control first")

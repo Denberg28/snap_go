@@ -1,6 +1,24 @@
 """Single owner serial loop; short ACK deadline and no automatic re-arming."""
 
-from .protocol import Parser, CMD, ACK, ENABLED, FAULT, encode
+from .protocol import (
+    Parser,
+    CMD,
+    ACK,
+    ENABLED,
+    FAULT,
+    F1,
+    F2,
+    F3,
+    CONTROL_MASK,
+    encode,
+)
+
+
+def _function_flags(functions):
+    values = list(functions or (False, False, False))
+    if len(values) != 3:
+        raise ValueError("Expected three function states")
+    return (F1 if values[0] else 0) | (F2 if values[1] else 0) | (F3 if values[2] else 0)
 
 
 class SerialLink:
@@ -23,7 +41,7 @@ class SerialLink:
         self.synced = False
         self.pending.clear()
 
-    def step(self, now, pan, tilt, enabled):
+    def step(self, now, pan, tilt, enabled, functions=(False, False, False)):
         import serial
 
         try:
@@ -48,14 +66,13 @@ class SerialLink:
                     self.synced = False
                     self.error = "Firmware timeout/fault; re-enable required"
                     continue
-                # An ACK must match the enable state requested by that command.
-                if bool(frame["flags"] & ENABLED) != sent[1]:
+                if (frame["flags"] & CONTROL_MASK) != sent[1]:
                     self.synced = False
                     self.error = "Firmware state mismatch"
                     continue
                 self.last_ack = now
                 self.actual = [frame["pan"], frame["tilt"]]
-                if not sent[1]:
+                if sent[1] == 0:
                     self.synced = True
                 self.error = ""
             healthy = self.synced and now - self.last_ack < 0.3
@@ -64,10 +81,12 @@ class SerialLink:
             self.pending = {k: v for k, v in self.pending.items() if now - v[0] <= 0.3}
             self.seq = (self.seq + 1) & 0xFFFFFFFF
             active = bool(enabled and healthy)
-            packet = encode(CMD, self.seq, pan, tilt, ENABLED if active else 0)
+            aux = _function_flags(functions) if healthy else 0
+            flags = (ENABLED if active else 0) | aux
+            packet = encode(CMD, self.seq, pan, tilt, flags)
             if self.device.write(packet) != len(packet):
                 raise serial.SerialTimeoutException("Incomplete serial write")
-            self.pending[self.seq] = (now, active)
+            self.pending[self.seq] = (now, flags)
             if not healthy and not self.error:
                 self.error = "ESP32 acknowledgement timeout"
             return healthy, self.actual
@@ -82,7 +101,7 @@ class SimLink:
     def __init__(self):
         self.error = ""
 
-    def step(self, now, pan, tilt, enabled):
+    def step(self, now, pan, tilt, enabled, functions=(False, False, False)):
         return True, [pan, tilt]
 
     def close(self):

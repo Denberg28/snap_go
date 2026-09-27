@@ -1,11 +1,68 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Snap Go · Camera control</title><link rel="stylesheet" href="/style.css"></head><body>
-<header><div class="brand"><span class="logo">◎</span><div><h1>Snap Go</h1><small>Pan + tilt camera</small></div></div><div class="header-actions"><span id="edition" class="pill">CONNECTING</span><button id="openSettings" class="secondary" aria-controls="setup" aria-expanded="false">⚙ Settings</button></div></header>
-<main><div class="toolbar"><span id="connection">Enter Pi token in Settings</span><span id="armed" class="pill">DISABLED</span><span id="serialStatus">● ESP32 offline</span><span id="cameraStatus">● Camera offline</span><span id="fps">— FPS</span></div>
-<div id="message" role="status">Connect to begin. Servos start disabled.</div>
-<section class="console" aria-label="Camera mount controls">
- <div class="stick-panel"><h2>PAN</h2><p>Left ↔ right</p><div id="panStick" class="stick" role="slider" tabindex="0" aria-label="Pan joystick" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><div class="stick-track horizontal"></div><div class="knob"></div></div><output id="panValue">1500 µs</output></div>
- <div class="middle"><div class="viewport"><img id="camera" alt="Live webcam preview" hidden><canvas id="simulation" width="640" height="480" hidden></canvas><div id="placeholder">◎<p>Waiting for camera</p></div><div class="crosshair">+</div></div><div class="modebar"><select id="mode" aria-label="Control mode"><option value="manual">Manual positioning</option><option value="track">Track subject · YOLOv8n</option></select><button id="enable" disabled>Enable mount</button><button id="stop" class="stop">STOP / HOLD</button></div><div class="readout"><span>Commanded PWM</span><strong id="position">1500 / 1500 µs</strong><button id="center" class="secondary" disabled>Center</button></div></div>
- <div class="stick-panel"><h2>TILT</h2><p>Up ↕ down</p><div id="tiltStick" class="stick" role="slider" tabindex="0" aria-label="Tilt joystick" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><div class="stick-track vertical"></div><div class="knob"></div></div><output id="tiltValue">1500 µs</output></div>
-</section><p id="diagnostic" class="muted">No video is recorded or uploaded.</p>
-<section id="setup" class="card setup" hidden><div class="sectionhead"><h2>Connection & calibration</h2><button id="closeSettings" class="secondary">Close</button></div><label>Pi access token <input id="token" type="password" autocomplete="off" placeholder="Paste the token shown by the Pi"></label><button id="connect">Connect</button><p class="muted">Keep this screen open while controlling. Losing the 1-second lease stops motion.</p><hr><div class="sectionhead"><div><h2>Calibration & tracking</h2><p class="muted">Disable mount before editing. Start with servo horns detached.</p></div><button id="save" class="secondary">Save settings</button></div><form id="settings"><div class="calgrid" id="fields"></div></form><details id="faultControls" hidden><summary>Simulation fault tests</summary><div class="actions"><button data-fault="target">Lose target</button><button data-fault="serial">Disconnect ESP32</button><button data-fault="none">Restore</button></div></details></section>
-<footer>Snap Go <span id="version">0.9.0</span> · Camera mount only · Rover driving remains with ArduRover</footer></main><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Snap Go · Live</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<section class="console" aria-label="Live camera controls">
+  <div class="side">
+    <strong>PAN</strong><small>left / right</small>
+    <div id="panStick" class="stick" role="slider" tabindex="0" aria-label="Pan joystick" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><div class="stick-track horizontal"></div><div class="knob"></div></div>
+    <output id="panValue">1500</output>
+  </div>
+
+  <div class="center">
+    <div class="viewport">
+      <img id="camera" alt="Live camera feed" hidden>
+      <canvas id="simulation" width="960" height="540" hidden></canvas>
+      <div id="placeholder">◎<p>Waiting for camera</p></div>
+      <div class="crosshair">+</div>
+      <div class="hud left"><span id="edition" class="badge">CONNECTING</span><span id="armed" class="badge">DISABLED</span></div>
+      <div class="hud right"><span id="serialStatus" class="badge">ESP32 OFFLINE</span><span id="cameraStatus" class="badge">CAMERA OFFLINE</span><span id="fps" class="readout">— FPS</span></div>
+    </div>
+  </div>
+
+  <div class="side">
+    <strong>TILT</strong><small>up / down</small>
+    <div id="tiltStick" class="stick" role="slider" tabindex="0" aria-label="Tilt joystick" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><div class="stick-track vertical"></div><div class="knob"></div></div>
+    <output id="tiltValue">1500</output>
+  </div>
+</section>
+
+<section class="controlbar">
+  <div class="controls main-controls">
+    <button id="manual" class="active">Manual</button>
+    <button id="track">Track</button>
+    <button id="enable" disabled>Enable</button>
+    <button id="center" disabled>Center</button>
+    <button id="stop" class="stop">Stop</button>
+    <button id="openSettings" class="secondary" aria-controls="setup" aria-expanded="false">Settings</button>
+    <select id="mode" aria-label="Control mode" hidden><option value="manual">manual</option><option value="track">track</option></select>
+  </div>
+  <div class="statusline"><span id="connection">Enter Pi token in Settings</span><span id="position">1500 / 1500 µs</span><span id="message" role="status">Servos start disabled.</span></div>
+  <div class="aux-controls" aria-label="Function servos">
+    <button id="f1" class="function" aria-pressed="false">F1</button>
+    <button id="f2" class="function" aria-pressed="false">F2</button>
+    <button id="f3" class="function" aria-pressed="false">F3</button>
+  </div>
+</section>
+
+<section id="setup" class="setup" hidden>
+  <div class="setup-card">
+    <div class="sectionhead"><div><h2>Live setup</h2><p class="muted">Pi connection, calibration and diagnostics.</p></div><button id="closeSettings" class="secondary">Close</button></div>
+    <label>Pi access token <input id="token" type="password" autocomplete="off" placeholder="Paste the token shown by the Pi"></label>
+    <button id="connect">Connect</button>
+    <div id="diagnostic" class="muted">No video is recorded or uploaded.</div>
+    <hr>
+    <div class="sectionhead"><h2>Calibration & tracking</h2><button id="save" class="secondary">Save settings</button></div>
+    <form id="settings"><div class="calgrid" id="fields"></div></form>
+    <details id="faultControls" hidden><summary>Simulation fault tests</summary><div class="actions"><button data-fault="target">Lose target</button><button data-fault="serial">Disconnect ESP32</button><button data-fault="none">Restore</button></div></details>
+    <div class="versionline">Snap Go <span id="version">0.10.0</span></div>
+  </div>
+</section>
+<script src="/app.js"></script>
+</body>
+</html>
