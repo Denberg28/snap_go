@@ -20,7 +20,7 @@ body{position:fixed;inset:0;padding:6px 8px 8px;background:var(--bg);color:var(-
 .stick::after{content:'';position:absolute;width:31%;height:31%;border-radius:50%;left:var(--x,50%);top:var(--y,50%);transform:translate(-50%,-50%);background:var(--purple);box-shadow:0 3px 9px #54416c45}
 output{font-size:9px;color:var(--purple);font-weight:700;font-variant-numeric:tabular-nums}
 .center{position:relative;min-width:0;min-height:0;padding:5px;overflow:hidden}
-.center canvas{display:block;width:100%;height:100%;border-radius:11px;background:var(--scene);pointer-events:none;touch-action:none}
+.center canvas{display:block;width:100%;height:100%;border-radius:11px;background:var(--scene);touch-action:none}
 .hud{position:absolute;top:11px;display:flex;align-items:center;gap:5px;z-index:2;pointer-events:none}
 .hud.left{left:12px}.hud.right{right:12px}
 .badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;border:1px solid #b8d8cf;background:#e8f5f1dd;color:var(--green);font-size:9px;font-weight:700;letter-spacing:.04em;white-space:nowrap;backdrop-filter:blur(6px)}
@@ -35,17 +35,18 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
 .status{margin-left:auto;min-width:0;max-width:27vw;color:var(--muted);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(orientation:portrait){.console{grid-template-columns:62px minmax(0,1fr) 62px;gap:5px}.side{padding:4px 2px}.side small{display:none}.stick{width:min(54px,88%)}.controlbar{min-height:42px;overflow:visible}.controls{flex-wrap:wrap}.status{display:none}button,select{height:29px;padding:0 7px;font-size:9px}}
 @media(orientation:landscape) and (max-height:320px){body{padding:4px 6px 5px;grid-template-rows:minmax(0,1fr) 36px;gap:5px}.console{grid-template-columns:66px minmax(0,1fr) 66px;gap:5px}.side{padding:3px 2px;gap:2px}.side small{display:none}.stick{width:min(54px,82%)}.controlbar{padding:3px 5px}.controls{gap:3px}button,select{height:27px;font-size:9px;padding:0 6px}.status{display:none}.badge,.readout{height:20px;font-size:8px}}
+.side{position:relative}.side-button{position:absolute;top:9px;right:4px;height:26px;padding:0 4px;font-size:9px}.badge{background:#10282b;color:#a4f4d9;border-color:#36625e}.side output{color:var(--text)}
 </style>
 </head>
 <body>
 <section class="console">
-  <div class="side"><strong>PAN</strong><small>left / right</small><div id="panStick" class="stick" role="slider" aria-label="Virtual pan joystick" aria-valuenow="0"></div><output id="panValue">1500</output></div>
+  <div class="side"><button id="drop" class="side-button">Drop target</button><strong>PAN</strong><small>left / right</small><div id="panStick" class="stick" role="slider" aria-label="Virtual pan joystick" aria-valuenow="0"></div><output id="panValue">1500</output></div>
   <div class="center" id="fixedPreview">
     <canvas id="scene" width="960" height="540" aria-label="Synthetic camera scene"></canvas>
     <div class="hud left"><span id="detect" class="badge">DETECTION ON</span></div>
     <div class="hud right"><span class="badge">OFFLINE</span><span id="position" class="readout">1500 / 1500 µs</span></div>
   </div>
-  <div class="side"><strong>TILT</strong><small>up / down</small><div id="tiltStick" class="stick" role="slider" aria-label="Virtual tilt joystick" aria-valuenow="0"></div><output id="tiltValue">1500</output></div>
+  <div class="side"><button id="servo" class="side-button" aria-pressed="true">Servo on</button><strong>TILT</strong><small>up / down</small><div id="tiltStick" class="stick" role="slider" aria-label="Virtual tilt joystick" aria-valuenow="0"></div><output id="tiltValue">1500</output></div>
 </section>
 <section class="controlbar">
   <div class="controls">
@@ -64,7 +65,7 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
-let pan=1500,tilt=1500,tracking=false,detect=true,phase=0,last=performance.now(),functions=[false,false,false];
+let pan=1500,tilt=1500,tracking=false,detect=true,phase=0,last=performance.now(),functions=[false,false,false],selected=0,servoOn=true,selectionStart=null;
 const axis={pan:{el:$('panStick'),value:0,id:null},tilt:{el:$('tiltStick'),value:0,id:null}};
 function sizeScene(){const bounds=canvas.getBoundingClientRect();canvas.width=Math.max(1,Math.round(bounds.width));canvas.height=Math.max(1,Math.round(bounds.height));}
 new ResizeObserver(sizeScene).observe(canvas);sizeScene();
@@ -76,17 +77,19 @@ function mode(track){tracking=track;$('manual').classList.toggle('active',!track
 $('manual').onclick=()=>mode(false);$('track').onclick=()=>mode(true);
 $('toggleDetection').onclick=()=>{detect=!detect;$('toggleDetection').textContent=detect?'Detection off':'Detection on';$('detect').textContent=detect?'DETECTION ON':'DETECTION OFF';$('detect').classList.toggle('off',!detect);};
 $('center').onclick=()=>{pan=tilt=1500;};
+$('drop').onclick=()=>{selected=0;$('status').textContent='Target selection cleared'}; $('servo').onclick=()=>{servoOn=!servoOn;$('servo').textContent=servoOn?'Servo on':'Servo off';if(!servoOn)mode(false)};
+canvas.addEventListener('pointerdown',e=>{selectionStart=[e.offsetX,e.offsetY];canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointerup',e=>{if(!selectionStart)return;const [ax,ay]=selectionStart;selectionStart=null;if(Math.abs(e.offsetX-ax)<12||Math.abs(e.offsetY-ay)<12)return;const w=canvas.width,h=canvas.height,points=[[.5+.25*Math.sin(phase*.7),.5+.14*Math.sin(phase*.46)],[.2,.47],[.78+.03*Math.sin(phase*.5),.55]];const match=points.findIndex(([x,y])=>{const px=x*w-(pan-1500)*.85*w/960,py=y*h+(tilt-1500)*.85*h/540;return px>=Math.min(ax,e.offsetX)&&px<=Math.max(ax,e.offsetX)&&py>=Math.min(ay,e.offsetY)&&py<=Math.max(ay,e.offsetY)});if(match>=0){selected=match;$('status').textContent='Selected T'+(match+1)}else $('status').textContent='No target in rectangle'});
 for(let i=1;i<=3;i++)$('f'+i).onclick=()=>{functions[i-1]=!functions[i-1];const b=$('f'+i);b.classList.toggle('on',functions[i-1]);b.setAttribute('aria-pressed',String(functions[i-1]));b.textContent='F'+i+(functions[i-1]?' ON':'');};
 $('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';functions=[false,false,false];for(let i=1;i<=3;i++){const b=$('f'+i);b.classList.remove('on');b.setAttribute('aria-pressed','false');b.textContent='F'+i}for(const name of Object.keys(axis))release(name);};
 function paint(time){
  const dt=clamp((time-last)/1000,0,.05);last=time;if($('motion').value==='moving')phase+=dt;
  const width=canvas.width,height=canvas.height,kind=$('sample').value;
- const worldX=width*(.5+.25*Math.sin(phase*.7)),worldY=height*(.5+.14*Math.sin(phase*.46));
+ const points=[[.5+.25*Math.sin(phase*.7),.5+.14*Math.sin(phase*.46)],[.2,.47],[.78+.03*Math.sin(phase*.5),.55]];const worldX=width*points[selected][0],worldY=height*points[selected][1];
  canvas.dataset.world=Math.round(worldX)+','+Math.round(worldY);
  const scaleX=width/960,scaleY=height/540,objectScale=clamp(Math.min(scaleX,scaleY),.45,.9);
  let x=worldX-(pan-1500)*.85*scaleX,y=worldY+(tilt-1500)*.85*scaleY;
  const visible=x>width*.05&&x<width*.95&&y>height*.05&&y<height*.95;
- if(tracking){
+ if(tracking&&servoOn){
   if(detect&&visible){
    const errorX=(x-width/2)/scaleX,errorY=(y-height/2)/scaleY,deadband=8;
    const panRate=clamp(Math.sign(errorX)*Math.max(0,Math.abs(errorX)-deadband)*5,-300,300);
@@ -94,7 +97,7 @@ function paint(time){
    pan=clamp(pan+panRate*dt,1200,1800);tilt=clamp(tilt+tiltRate*dt,1300,1700);
    $('status').textContent='Tracking · error '+Math.round(Math.hypot(errorX,errorY))+' px';
   }else $('status').textContent='Target unavailable · holding';
- }else{pan=clamp(pan+axis.pan.value*180*dt,1200,1800);tilt=clamp(tilt+axis.tilt.value*180*dt,1300,1700);}
+ }else if(servoOn){pan=clamp(pan+axis.pan.value*180*dt,1200,1800);tilt=clamp(tilt+axis.tilt.value*180*dt,1300,1700);}
  x=worldX-(pan-1500)*.85*scaleX;y=worldY+(tilt-1500)*.85*scaleY;
  canvas.dataset.error=Math.round(Math.hypot((x-width/2)/scaleX,(y-height/2)/scaleY));
  ctx.fillStyle='#0d1821';ctx.fillRect(0,0,width,height);ctx.fillStyle='#173240';ctx.fillRect(0,height*.70,width,height*.30);
@@ -113,6 +116,7 @@ function paint(time){
   }
  }
  canvas.dataset.targetHeight=Math.round(targetHeight);
+ if(detect)points.forEach(([px,py],i)=>{if(i===selected)return;const tx=px*width-(pan-1500)*.85*scaleX,ty=py*height+(tilt-1500)*.85*scaleY;ctx.strokeStyle='#f4c86c';ctx.strokeRect(tx-18*objectScale,ty-50*objectScale,36*objectScale,100*objectScale);ctx.fillStyle='#f4c86c';ctx.font='11px sans-serif';ctx.fillText('T'+(i+1),tx-18*objectScale,ty-52*objectScale)});
  ctx.strokeStyle='#6ee0bd';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(width/2-13,height/2);ctx.lineTo(width/2+13,height/2);ctx.moveTo(width/2,height/2-13);ctx.lineTo(width/2,height/2+13);ctx.stroke();
  $('position').textContent=Math.round(pan)+' / '+Math.round(tilt)+' µs';$('panValue').textContent=Math.round(pan);$('tiltValue').textContent=Math.round(tilt);requestAnimationFrame(paint);
 }

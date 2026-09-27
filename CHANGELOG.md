@@ -1,3 +1,6 @@
+## 0.11.0 — crowd target testing build
+- Three target candidates, rectangle selection, Drop target and servo control layout.
+
 # Changelog
 
 ## 0.10.0 — 2026-09-27 — live operator + function servos

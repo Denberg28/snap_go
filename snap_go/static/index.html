@@ -9,13 +9,14 @@
 <body>
 <section class="console" aria-label="Live camera controls">
   <div class="side">
-    <strong>PAN</strong><small>left / right</small>
+    <button id="drop" class="side-button" disabled>Drop target</button><strong>PAN</strong><small>left / right</small>
     <div id="panStick" class="stick" role="slider" tabindex="0" aria-label="Pan joystick" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><div class="stick-track horizontal"></div><div class="knob"></div></div>
     <output id="panValue">1500</output>
   </div>
 
   <div class="center">
-    <div class="viewport">
+    <div class="viewport" id="viewport">
+      <div id="boxes" class="boxes"></div><div id="selectionBox" class="selection-box" hidden></div>
       <img id="camera" alt="Live camera feed" hidden>
       <canvas id="simulation" width="960" height="540" hidden></canvas>
       <div id="placeholder">◎<p>Waiting for camera</p></div>
@@ -26,7 +27,7 @@
   </div>
 
   <div class="side">
-    <strong>TILT</strong><small>up / down</small>
+    <button id="servo" class="side-button" aria-pressed="false">Servo off</button><strong>TILT</strong><small>up / down</small>
     <div id="tiltStick" class="stick" role="slider" tabindex="0" aria-label="Tilt joystick" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0"><div class="stick-track vertical"></div><div class="knob"></div></div>
     <output id="tiltValue">1500</output>
   </div>
@@ -60,7 +61,7 @@
     <div class="sectionhead"><h2>Calibration & tracking</h2><button id="save" class="secondary">Save settings</button></div>
     <form id="settings"><div class="calgrid" id="fields"></div></form>
     <details id="faultControls" hidden><summary>Simulation fault tests</summary><div class="actions"><button data-fault="target">Lose target</button><button data-fault="serial">Disconnect ESP32</button><button data-fault="none">Restore</button></div></details>
-    <div class="versionline">Snap Go <span id="version">0.10.0</span></div>
+    <div class="versionline">Snap Go <span id="version">0.11.0</span></div>
   </div>
 </section>
 <script src="/app.js"></script>

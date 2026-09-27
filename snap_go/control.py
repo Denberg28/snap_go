@@ -85,6 +85,8 @@ class Controller:
         self.frame_time = -1e9
         self.seen = -1e9
         self.detection = None
+        self.selection = None
+        self.candidates = []
         self.error = [0.0, 0.0]
         self.fps = 0.0
         self.link_ok = False
@@ -95,6 +97,7 @@ class Controller:
         self.enabled = False
         self.functions = [False, False, False]
         self.reason = reason
+        self.selection = None
         self.detection = None
         self.error = [0.0, 0.0]
         self.target = [self.pan, self.tilt]
@@ -112,7 +115,8 @@ class Controller:
         self.target = [self.pan, self.tilt]
         self.enabled, self.mode, self.lease = True, mode, now
         self.seen = now
-        self.detection = None
+        if self.selection is None:
+            self.detection = None
         self.error = [0.0, 0.0]
         self.reason = "Enabled: " + mode
 
@@ -126,15 +130,14 @@ class Controller:
             if d["class_id"] == self.config.class_id
             and d["confidence"] >= self.config.confidence
         ]
-        if self.detection:
-            candidates = [
-                d
-                for d in candidates
-                if math.hypot(
-                    d["x"] - self.detection["x"], d["y"] - self.detection["y"]
-                )
-                <= 0.25
-            ]
+        # Expose at most three strong candidates; never silently switch a selected target.
+        candidates.sort(key=lambda d: d["confidence"], reverse=True)
+        if self.selection is not None:
+            anchor = self.detection
+            candidates = [d for d in candidates if anchor and math.hypot(d["x"]-anchor["x"], d["y"]-anchor["y"]) <= 0.25]
+        elif self.detection:
+            candidates = [d for d in candidates if math.hypot(d["x"]-self.detection["x"], d["y"]-self.detection["y"]) <= 0.25]
+        self.candidates = sorted([d for d in detections if d["class_id"] == self.config.class_id and d["confidence"] >= self.config.confidence], key=lambda d: d["confidence"], reverse=True)[:3]
         if candidates:
             anchor = self.detection or {"x": 0.5, "y": 0.5}
             self.detection = min(
@@ -144,7 +147,29 @@ class Controller:
             self.seen = timestamp
             self.error = [2 * (self.detection[k] - 0.5) for k in ("x", "y")]
         else:
+            self.detection = None
             self.error = [0.0, 0.0]  # hold immediately; no blind scanning
+
+    @staticmethod
+    def _inside_selection(d, rect):
+        x1, y1, x2, y2 = rect
+        return x1 <= d["x"] <= x2 and y1 <= d["y"] <= y2
+
+    def select(self, rect, now):
+        if not isinstance(rect, list) or len(rect) != 4 or any(type(v) not in (int, float) or not math.isfinite(v) or not 0 <= v <= 1 for v in rect):
+            raise ValueError("Selection must be four normalized coordinates")
+        x1, y1, x2, y2 = rect
+        if x2-x1 < .02 or y2-y1 < .02:
+            raise ValueError("Draw a larger selection rectangle")
+        if now-self.frame_time > .75:
+            raise ValueError("Camera frame is stale")
+        matches = [d for d in self.candidates if self._inside_selection(d, rect)]
+        if not matches:
+            raise ValueError("No detected target inside the rectangle")
+        self.selection = rect
+        self.detection = max(matches, key=lambda d:d["confidence"])
+        self.seen = now
+        self.reason = "Target selected"
 
     def tick(self, now, dt):
         if not self.enabled and not any(self.functions):
@@ -197,6 +222,8 @@ class Controller:
             camera_ok=now - self.frame_time <= 0.75,
             fps=round(self.fps, 1),
             target=self.detection,
+            candidates=list(self.candidates),
+            selection=self.selection,
             functions=list(self.functions),
             config=asdict(self.config),
         )

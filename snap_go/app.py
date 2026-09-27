@@ -67,7 +67,10 @@ class Runtime:
                                     y=0.5 + 0.1 * math.cos(now / 4),
                                     confidence=0.95,
                                     class_id=c.config.class_id,
-                                )
+                                    box=[0.5 + 0.15 * math.sin(now / 3)-.04,.3,0.5 + 0.15 * math.sin(now / 3)+.04,.7],
+                                ),
+                                dict(x=.22,y=.48,confidence=.91,class_id=c.config.class_id,box=[.18,.30,.26,.66]),
+                                dict(x=.78+.04*math.sin(now/2),y=.53,confidence=.90,class_id=c.config.class_id,box=[.74+.04*math.sin(now/2),.35,.82+.04*math.sin(now/2),.71]),
                             ]
                             if self.sim_target
                             else []
@@ -157,6 +160,12 @@ class Runtime:
                 c.functions[index - 1] = enabled
                 c.lease = now
                 c.reason = f"F{index} {'ON' if enabled else 'OFF'}"
+            elif op == "select":
+                c.select(payload.get("rect"), now)
+            elif op == "clear_selection":
+                c.selection = None
+                c.detection = None
+                c.reason = "Target selection cleared"
             elif op == "move":
                 if not c.enabled or c.mode != "manual":
                     raise ValueError("Enable manual control first")

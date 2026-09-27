@@ -1,3 +1,6 @@
+## 0.11.0 testing build
+Python control and JS syntax checked. Android and hardware checks pending.
+
 # Verification record — 2026-09-27
 
 ## 0.7.0 fixed operator UI candidate

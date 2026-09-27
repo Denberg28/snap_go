@@ -7,7 +7,7 @@ body{position:fixed;inset:0;padding:6px 8px 8px;background:var(--bg);color:var(-
 .console{min-width:0;min-height:0;display:grid;grid-template-columns:clamp(72px,9vw,90px) minmax(0,1fr) clamp(72px,9vw,90px);gap:7px}
 .side,.center,.controlbar{background:var(--card);border:1px solid var(--line);box-shadow:0 3px 12px #0002;border-radius:15px}
 .side{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px;text-align:center}
-.side strong{font-size:10px;letter-spacing:.08em}.side small{font-size:8px;color:var(--muted)}output{font-size:9px;color:var(--accent2);font-weight:700;font-variant-numeric:tabular-nums}
+.side-button{position:absolute;top:9px;right:5px;height:27px;padding:0 5px;font-size:9px}.side{position:relative}.side strong{font-size:11px;letter-spacing:.08em}.side small{font-size:8px;color:var(--muted)}output{font-size:9px;color:var(--accent2);font-weight:700;font-variant-numeric:tabular-nums}
 .stick{width:min(68px,82%);aspect-ratio:1;border:2px solid var(--accent2);border-radius:50%;background:color-mix(in srgb,var(--accent) 13%,var(--card));position:relative;touch-action:none}
 .stick-track{position:absolute;background:var(--accent2);opacity:.38}.stick-track.horizontal{height:1px;left:16%;right:16%;top:50%}.stick-track.vertical{width:1px;top:16%;bottom:16%;left:50%}
 .knob{position:absolute;left:50%;top:50%;width:31%;height:31%;border-radius:50%;transform:translate(-50%,-50%);background:var(--accent);box-shadow:0 3px 9px #0004;pointer-events:none}
@@ -21,3 +21,6 @@ button{height:31px;border:1px solid var(--line);border-radius:9px;background:col
 .ok{color:var(--green)!important}.bad{color:var(--danger)!important}
 @media(orientation:portrait){.console{grid-template-columns:62px minmax(0,1fr) 62px;gap:5px}.side small{display:none}.stick{width:min(54px,88%)}.controlbar{grid-template-columns:1fr auto;min-height:43px}.statusline{display:none}.calgrid{grid-template-columns:repeat(2,1fr)}}
 @media(orientation:landscape) and (max-height:320px){body{padding:4px 6px 5px;grid-template-rows:minmax(0,1fr) 36px;gap:5px}.console{grid-template-columns:66px minmax(0,1fr) 66px;gap:5px}.side{padding:3px 2px}.side small{display:none}.stick{width:min(54px,82%)}.controlbar{padding:3px 5px}.statusline{font-size:7px}button{height:27px;font-size:9px;padding:0 6px}.function{min-width:34px}}
+
+/* Target annotations use normalized video coordinates. */
+.boxes{position:absolute;inset:0;z-index:3;pointer-events:none}.candidate{position:absolute;border:2px solid #f4c86c;box-shadow:0 0 0 1px #101820;font-size:10px;color:#fff}.candidate.selected{border-color:#67dfbc}.candidate span{position:absolute;top:-17px;left:-2px;background:#17232a;padding:1px 4px;white-space:nowrap}.selection-box{position:absolute;z-index:5;border:2px dashed #fff;background:#ffffff20;pointer-events:none}.viewport{touch-action:none}#placeholder{color:#bed0db}.side output{color:var(--text)}.statusline{color:var(--text)}.side-button.on{background:var(--green);color:#102a25}
