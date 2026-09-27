@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "snap-go"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reliability-first Raspberry Pi + ESP32-S3 two-axis subject tracker for ArduRover"
 requires-python = ">=3.11"
 dependencies = ["flask>=3.0,<4", "pyserial>=3.5,<4"]
