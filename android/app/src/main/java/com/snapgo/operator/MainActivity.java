@@ -126,6 +126,7 @@ public final class MainActivity extends Activity {
                 darkTheme ? Color.rgb(12, 20, 27) : Color.rgb(248, 246, 252));
         if (themeButton != null) themeButton.setText(darkTheme ? "☀" : "☾");
         applyBrowserTheme(browser);
+        if (livePage && browser == null) showConnect(null);
     }
 
     private int dp(float value) {
