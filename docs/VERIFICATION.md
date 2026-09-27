@@ -2,7 +2,7 @@
 
 ## Follow-up review (software only)
 
-Android operator app added with local Pi address entry, dashboard access, background STOP request and debug APK CI workflow. Android SDK and Gradle distribution are unavailable in this workspace, so no APK was built or installed here. The APK and all phone/Pi connection flows remain unverified until the Android workflow and physical testing run.
+Android operator app added with local Pi address entry, dashboard access, background STOP request and debug APK CI workflow. GitHub Actions run 36312512126 built and uploaded `app-debug.apk` from commit 3355bc0; the downloaded APK is 10,509 bytes, ZIP CRC passed, and SHA-256 is `288e38b1114ecf3e427111eef09cc0a9984720b421492df326ee1ceb5ea91b60`. Installation and all phone/Pi connection flows remain unverified until physical testing.
 
 The vision worker now drops frames older than 0.75 s both before and after inference, preventing expensive JPEG encoding and delivery of already stale results. It also releases the camera on worker exit. Physical capture age remains an estimate based on when OpenCV returns the frame, not exposure time. The new frame-age regression test was added. This workspace lacks pytest and dependency installation could not reach the package index, so the full suite must be rerun in CI or the provisioned development environment before packaging. No hardware acceptance status changes.
 
