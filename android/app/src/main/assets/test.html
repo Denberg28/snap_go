@@ -59,7 +59,7 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
     <button id="manual" class="active">Manual</button><button id="track">Track</button><button id="toggleDetection">Detection off</button>
     <select id="motion" aria-label="Target motion"><option value="moving">Moving target</option><option value="stationary">Stationary target</option></select>
     <button id="center">Center</button><button id="reset" class="stop">Reset</button>
-    <select id="sample" aria-label="Sample object"><option value="person">Person</option><option value="ball">Ball</option><option value="multiple">Multiple · 3 targets</option></select>
+    <select id="sample" aria-label="Sample object"><option value="person">Person</option><option value="ball">Ball</option><option value="multiple" selected>Multiple · 3 targets</option></select>
   </div>
   <div id="status" class="status" role="status">Manual virtual pan/tilt ready.</div>
   <div class="aux-controls" aria-label="Function servos">
@@ -72,6 +72,7 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
 let pan=1500,tilt=1500,tracking=false,detect=true,phase=0,last=performance.now(),functions=[false,false,false],selected=0,servoOn=true,selectionStart=null,selectionPointer=null;
+const objectTypes=['person','ball','square'];
 const axis={pan:{el:$('panStick'),value:0,id:null},tilt:{el:$('tiltStick'),value:0,id:null}};
 function sizeScene(){const bounds=canvas.getBoundingClientRect();canvas.width=Math.max(1,Math.round(bounds.width));canvas.height=Math.max(1,Math.round(bounds.height));}
 new ResizeObserver(sizeScene).observe(canvas);sizeScene();
@@ -90,15 +91,16 @@ function clearSelection(){selectionStart=null;selectionPointer=null;$('selection
 canvas.addEventListener('pointerdown',e=>{if(!detect)return;e.preventDefault();selectionPointer=e.pointerId;selectionStart=canvasPoint(e);canvas.setPointerCapture(e.pointerId)});
 canvas.addEventListener('pointermove',e=>{if(selectionPointer===e.pointerId)drawSelection(e)});
 canvas.addEventListener('pointerup',e=>{if(selectionPointer!==e.pointerId)return;const a=selectionStart,b=canvasPoint(e);clearSelection();if(Math.abs(b.x-a.x)<12||Math.abs(b.y-a.y)<12){$('status').textContent='Draw a square around a target.';return}const w=b.w,h=b.h,scaleX=w/960,scaleY=h/540,points=[[.5+.25*Math.sin(phase*.7),.5+.14*Math.sin(phase*.46)],[.2,.47],[.78+.03*Math.sin(phase*.5),.55]];
- const hits=points.map(([x,y],i)=>({i,x:x*w-(pan-1500)*.85*scaleX,y:y*h+(tilt-1500)*.85*scaleY})).filter(p=>p.x>=Math.min(a.x,b.x)&&p.x<=Math.max(a.x,b.x)&&p.y>=Math.min(a.y,b.y)&&p.y<=Math.max(a.y,b.y));
+ const hits=points.map(([x,y],i)=>({i,x:x*w-(pan-1500)*.85*scaleX,y:y*h+(tilt-1500)*.85*scaleY})).filter(p=>($('sample').value==='multiple'||p.i===selected)&&p.x>=Math.min(a.x,b.x)&&p.x<=Math.max(a.x,b.x)&&p.y>=Math.min(a.y,b.y)&&p.y<=Math.max(a.y,b.y));
  hits.sort((p,q)=>Math.hypot(p.x-(a.x+b.x)/2,p.y-(a.y+b.y)/2)-Math.hypot(q.x-(a.x+b.x)/2,q.y-(a.y+b.y)/2));
- if(hits.length){selected=hits[0].i;canvas.dataset.selected='T'+(selected+1);$('status').textContent='Selected T'+(selected+1)+' · '+($('sample').value==='multiple'?['person','ball','square'][selected]:$('sample').value)}else $('status').textContent='No target in rectangle.'});
+ if(hits.length){selected=hits[0].i;canvas.dataset.selected='T'+(selected+1);$('status').textContent='Selected T'+(selected+1)+' · '+($('sample').value==='multiple'?objectTypes[selected]:$('sample').value)}else $('status').textContent='No target in rectangle.'});
 canvas.addEventListener('pointercancel',clearSelection);
+$('sample').onchange=()=>{selected=0;canvas.dataset.selected='T1';$('status').textContent=$('sample').value==='multiple'?'Three targets · draw a square to select.':'Draw a square around the '+$('sample').value+'.'};
 for(let i=1;i<=3;i++)$('f'+i).onclick=()=>{functions[i-1]=!functions[i-1];const b=$('f'+i);b.classList.toggle('on',functions[i-1]);b.setAttribute('aria-pressed',String(functions[i-1]));b.textContent='F'+i+(functions[i-1]?' ON':'');};
-$('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';functions=[false,false,false];for(let i=1;i<=3;i++){const b=$('f'+i);b.classList.remove('on');b.setAttribute('aria-pressed','false');b.textContent='F'+i}for(const name of Object.keys(axis))release(name);selected=0;canvas.dataset.selected='T1';clearSelection();};
+$('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';functions=[false,false,false];for(let i=1;i<=3;i++){const b=$('f'+i);b.classList.remove('on');b.setAttribute('aria-pressed','false');b.textContent='F'+i}for(const name of Object.keys(axis))release(name);selected=0;$('sample').value='multiple';canvas.dataset.selected='T1';clearSelection();};
 function paint(time){
  const dt=clamp((time-last)/1000,0,.05);last=time;if($('motion').value==='moving')phase+=dt;
- const width=canvas.width,height=canvas.height,kind=$('sample').value,activeKind=kind==='multiple'?['person','ball','square'][selected]:kind;
+ const width=canvas.width,height=canvas.height,kind=$('sample').value;
  canvas.dataset.targetTypes=kind==='multiple'?'person,ball,square':kind;
  const points=[[.5+.25*Math.sin(phase*.7),.5+.14*Math.sin(phase*.46)],[.2,.47],[.78+.03*Math.sin(phase*.5),.55]];const worldX=width*points[selected][0],worldY=height*points[selected][1];
  canvas.dataset.world=Math.round(worldX)+','+Math.round(worldY);
@@ -119,35 +121,23 @@ function paint(time){
  ctx.fillStyle='#0d1821';ctx.fillRect(0,0,width,height);ctx.fillStyle='#173240';ctx.fillRect(0,height*.70,width,height*.30);
  ctx.strokeStyle='#244655';ctx.lineWidth=1;for(let gx=0;gx<width;gx+=48){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,height);ctx.stroke()}for(let gy=0;gy<height;gy+=48){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(width,gy);ctx.stroke()}
  let targetHeight=0;
- if(visible){
-  const s=objectScale;
-  if(activeKind==='person'){
-   ctx.fillStyle='#a8bbc7';ctx.beginPath();ctx.arc(x,y-29*s,13*s,0,Math.PI*2);ctx.fill();
-   ctx.fillRect(x-16*s,y-12*s,32*s,44*s);ctx.fillRect(x-13*s,y+32*s,9*s,34*s);ctx.fillRect(x+4*s,y+32*s,9*s,34*s);
-  }else if(activeKind==='ball'){ctx.fillStyle='#f3a06c';ctx.beginPath();ctx.arc(x,y,22*s,0,Math.PI*2);ctx.fill()}
-  else{ctx.fillStyle='#e9c780';ctx.fillRect(x-22*s,y-22*s,44*s,44*s)}
-  if(detect){
-   const s=objectScale,boxW=(activeKind==='person'?46:54)*s,boxH=(activeKind==='person'?124:54)*s,boxY=y-(activeKind==='person'?47:27)*s;
-   targetHeight=boxH;ctx.strokeStyle='#6ee0bd';ctx.lineWidth=Math.max(1.5,2.4*s);ctx.strokeRect(x-boxW/2,boxY,boxW,boxH);
-   ctx.fillStyle='#6ee0bd';ctx.font='600 '+Math.max(9,Math.round(13*s))+'px sans-serif';ctx.fillText(activeKind+' · 0.94',clamp(x-boxW/2,8,width-105),clamp(boxY-6,14,height-8));
-  }
- }
- canvas.dataset.targetHeight=Math.round(targetHeight);
  points.forEach(([px,py],i)=>{
-  if(i===selected)return;
-  const tx=px*width-(pan-1500)*.85*scaleX,ty=py*height+(tilt-1500)*.85*scaleY,s=objectScale;
-  if(kind==='multiple'){
-   ctx.fillStyle=i===0?'#a8bbc7':i===1?'#f3a06c':'#e9c780';
-   if(i===0){ctx.beginPath();ctx.arc(tx,ty-29*s,13*s,0,Math.PI*2);ctx.fill();ctx.fillRect(tx-16*s,ty-12*s,32*s,44*s);ctx.fillRect(tx-13*s,ty+32*s,9*s,34*s);ctx.fillRect(tx+4*s,ty+32*s,9*s,34*s)}
-   else if(i===1){ctx.beginPath();ctx.arc(tx,ty,22*s,0,Math.PI*2);ctx.fill()}
-   else ctx.fillRect(tx-22*s,ty-22*s,44*s,44*s);
-  }
+  if(kind!=='multiple'&&i!==selected)return;
+  const tx=px*width-(pan-1500)*.85*scaleX,ty=py*height+(tilt-1500)*.85*scaleY,s=objectScale,shape=kind==='multiple'?objectTypes[i]:kind;
+  if(tx<width*.02||tx>width*.98||ty<height*.02||ty>height*.98)return;
+  if(shape==='person'){
+   ctx.fillStyle='#a8bbc7';ctx.beginPath();ctx.arc(tx,ty-29*s,13*s,0,Math.PI*2);ctx.fill();
+   ctx.fillRect(tx-16*s,ty-12*s,32*s,44*s);ctx.fillRect(tx-13*s,ty+32*s,9*s,34*s);ctx.fillRect(tx+4*s,ty+32*s,9*s,34*s);
+  }else if(shape==='ball'){ctx.fillStyle='#f3a06c';ctx.beginPath();ctx.arc(tx,ty,22*s,0,Math.PI*2);ctx.fill()}
+  else{ctx.fillStyle='#e9c780';ctx.fillRect(tx-22*s,ty-22*s,44*s,44*s)}
   if(!detect)return;
-  const person=kind==='multiple'&&i===0,bw=(person?46:54)*s,bh=(person?124:54)*s,by=ty-(person?47:27)*s;
-  ctx.strokeStyle='#f4c86c';ctx.lineWidth=2;ctx.strokeRect(tx-bw/2,by,bw,bh);
-  ctx.fillStyle='#f4c86c';ctx.font='11px sans-serif';
-  ctx.fillText(kind==='multiple'?['person','ball','square'][i]:'T'+(i+1),tx-bw/2,by-4*s);
+  const person=shape==='person',bw=(person?46:54)*s,bh=(person?124:54)*s,by=ty-(person?47:27)*s;
+  if(i===selected)targetHeight=bh;
+  ctx.strokeStyle=i===selected?'#6ee0bd':'#f4c86c';ctx.lineWidth=i===selected?Math.max(1.5,2.4*s):2;ctx.strokeRect(tx-bw/2,by,bw,bh);
+  ctx.fillStyle=ctx.strokeStyle;ctx.font='600 '+Math.max(9,Math.round(13*s))+'px sans-serif';
+  ctx.fillText(shape+' · 0.94',clamp(tx-bw/2,8,width-105),clamp(by-5,14,height-8));
  });
+ canvas.dataset.targetHeight=Math.round(targetHeight);
  ctx.strokeStyle='#6ee0bd';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(width/2-13,height/2);ctx.lineTo(width/2+13,height/2);ctx.moveTo(width/2,height/2-13);ctx.lineTo(width/2,height/2+13);ctx.stroke();
  $('position').textContent=Math.round(pan)+' / '+Math.round(tilt)+' µs';$('panValue').textContent=Math.round(pan);$('tiltValue').textContent=Math.round(tilt);requestAnimationFrame(paint);
 }

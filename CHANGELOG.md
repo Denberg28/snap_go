@@ -1,3 +1,8 @@
+## 0.11.5 — preserve selected object types
+- Show Person, Ball, and Square together by default in Multiple mode.
+- Keep each object's shape and label when selecting it by drawing a rectangle; omit extra boxes in single-object modes.
+- Verify ball and square selection and tracking controls in the browser.
+
 ## 0.11.4 — target selection and tracking controls
 - Show the drawn selection rectangle in offline Test mode and select the closest target within it.
 - Stop tracking when detection or servo output is disabled; keep Track button state consistent and reset selection.

@@ -58,7 +58,7 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await testPage.mouse.up();
   await testPage.click('#f1');
   assert.equal(await testPage.locator('#f1').getAttribute('aria-pressed'),'true');
-  await testPage.selectOption('#sample','multiple');
+  assert.equal(await testPage.locator('#sample').inputValue(),'multiple');
   await testPage.waitForFunction(()=>document.querySelector('#scene').dataset.targetTypes==='person,ball,square');
   assert.equal(await testPage.locator('#servo').getAttribute('aria-pressed'),'true');
   assert.ok(await testPage.locator('#servo').evaluate(e=>e.classList.contains('on')));
@@ -84,6 +84,17 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await testPage.mouse.up();
   assert.equal(await testPage.isVisible('#selectionRect'),false);
   assert.equal(await testPage.locator('#scene').getAttribute('data-selected'),'T2');
+  assert.match(await testPage.locator('#status').innerText(),/Selected T2 · ball/);
+  assert.equal(await testPage.locator('#sample').inputValue(),'multiple');
+  await testPage.waitForTimeout(50);
+  const selectedBall=await testPage.evaluate(()=>{const c=document.querySelector('#scene'),x=Math.round(.2*c.width-(pan-1500)*.85*c.width/960),y=Math.round(.47*c.height+(tilt-1500)*.85*c.height/540);return Array.from(c.getContext('2d').getImageData(x,y,1,1).data).slice(0,3)});
+  assert.deepEqual(selectedBall,[243,160,108],'Selecting ball must keep its appearance');
+  await testPage.mouse.move(canvasBox.x+canvasBox.width*.71,canvasBox.y+canvasBox.height*.48);
+  await testPage.mouse.down();
+  await testPage.mouse.move(canvasBox.x+canvasBox.width*.87,canvasBox.y+canvasBox.height*.63,{steps:4});
+  await testPage.mouse.up();
+  assert.equal(await testPage.locator('#scene').getAttribute('data-selected'),'T3');
+  assert.match(await testPage.locator('#status').innerText(),/Selected T3 · square/);
   await testPage.selectOption('#sample','person');
   await testPage.click('#track');
   assert.match(await testPage.locator('#status').innerText(),/Synthetic target tracking/);
