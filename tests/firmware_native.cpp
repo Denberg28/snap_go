@@ -15,10 +15,10 @@ int main() {
   g.check(356,true);assert(!g.enabled&&g.fault);
   off.seq=6;g.accept(off,357,true);on.seq=7;assert(!g.accept(on,358,false));
   g.accept(off,359,false);assert(g.accept(on,360,false));
-  Command aux{8,1500,1500,false,uint8_t(F1|F3)};assert(g.accept(aux,361,false));
-  assert(g.functions==(F1|F3));g.check(800,false);assert(g.functions==0);
   for(int i=0;i<1000;i++){g.step();}
   assert(g.pan==1900&&g.tilt==1100);
+  Command aux{8,1500,1500,false,uint8_t(F1|F3)};assert(g.accept(aux,361,false));
+  assert(g.functions==(F1|F3));g.check(800,false);assert(g.functions==0);
   Guard wrap;off.seq=0xffffffff;wrap.accept(off,0xfffffff0,false);on.seq=0;
   assert(wrap.accept(on,0xfffffff5,false));wrap.check(20,false);assert(wrap.enabled);
   wrap.check(400,false);assert(!wrap.enabled);
