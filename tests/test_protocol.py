@@ -1,13 +1,36 @@
-import json, pytest
-from snap_go.protocol import encode_message, decode_message, crc32_payload
+import random
+import pytest
+from snap_go.protocol import Parser, CMD, ACK, SIZE, encode, decode
 
-def test_roundtrip(): assert decode_message(encode_message({"a":1})) == {"a":1}
-def test_crc_stable(): assert crc32_payload({"b":2,"a":1}) == crc32_payload({"a":1,"b":2})
-def test_bad_json():
-    with pytest.raises(Exception): decode_message("nope")
-def test_missing_fields():
-    with pytest.raises(ValueError): decode_message('{}')
-def test_crc_rejected():
-    with pytest.raises(ValueError): decode_message(json.dumps({"payload":{"a":1},"crc32":"00000000"}))
-@pytest.mark.parametrize("v",[0,1,-1,3.14,"x",True,None,[1,2],{"x":1}])
-def test_payload_values(v): assert decode_message(encode_message({"v":v}))["v"] == v
+
+def test_crc_known_vector():
+    import binascii
+
+    assert binascii.crc_hqx(b"123456789", 0xFFFF) == 0x29B1
+
+
+def test_roundtrip_and_every_single_bit_corruption():
+    packet = encode(CMD, 0xFFFFFFFF, 1100, 1900, 1)
+    assert decode(packet)["seq"] == 0xFFFFFFFF
+    for bit in range(128):
+        bad = bytearray(packet)
+        bad[bit // 8] ^= 1 << (bit % 8)
+        with pytest.raises(ValueError):
+            decode(bad)
+
+
+def test_fragmented_noisy_parser():
+    parser = Parser()
+    packet = encode(ACK, 123)
+    stream = b"noiseSGbroken" + packet + b"junk" + packet
+    result = []
+    for byte in stream:
+        result.extend(parser.feed(bytes([byte])))
+    assert [p["seq"] for p in result] == [123, 123]
+    assert len(parser.buffer) < SIZE
+
+
+def test_random_noise_bounded():
+    p = Parser()
+    p.feed(random.Random(32).randbytes(100000))
+    assert len(p.buffer) < SIZE

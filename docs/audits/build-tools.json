@@ -1,0 +1,1 @@
+{"dependencies": [{"name": "setuptools", "version": "84.0.0", "vulns": []}, {"name": "wheel", "version": "0.46.3", "vulns": []}, {"name": "build", "version": "1.2.2.post1", "vulns": []}, {"name": "platformio", "version": "6.1.18", "vulns": []}, {"name": "esptool", "version": "4.8.1", "vulns": []}], "fixes": []}
