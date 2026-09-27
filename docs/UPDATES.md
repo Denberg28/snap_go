@@ -6,6 +6,8 @@ The app's **Check for update** button reads the latest public release from `Denb
 
 Android requires the same signing certificate for in-place updates. GitHub Actions debug builds use disposable keys. The first stable signed APK requires uninstalling any debug APK. Future signed releases can update in place if the signing key, package ID and increasing version code are retained.
 
+**Windows one-command setup:** Install the official GitHub CLI (`gh`) and a JDK (`keytool`) on your own computer, then run `powershell -NoProfile -File .\scripts\setup_android_signing.ps1` from a copy of this repository. Approve the GitHub login when prompted and enter a new signing password locally. The script checks the destination repository, creates a new keystore under `%USERPROFILE%\SnapGoSigning` without overwriting an existing one, and sets the GitHub Actions secrets and public variables. Back up the keystore and password before publishing any signed APK. Do not run it on an untrusted or shared computer. Manual setup is below if preferred.
+
 On a trusted computer create and securely back up one keystore **outside Git**:
 
 ```bash
