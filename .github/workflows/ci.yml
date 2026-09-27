@@ -1,20 +1,58 @@
-name: CI
-on: [push, pull_request]
+name: Build and verify Snap_Go
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
-  python:
-    runs-on: ubuntu-latest
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11'}
-      - run: pip install -e '.[dev]'
-      - run: pytest
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install '.[dev]' platformio==6.1.18 esptool==4.8.1
+      - run: python -m pytest -q
+      - run: node --check snap_go/static/app.js
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - run: python scripts/check_versions.py
+      - run: python -m platformio run -d firmware
+      - run: python scripts/merge_firmware.py
       - run: python -m build
-  firmware:
-    runs-on: ubuntu-latest
+      - run: python scripts/package.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Snap_Go-testing
+          path: |
+            dist/*
+            firmware/Snap_Go-*-esp32s3.bin
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: verify
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: {python-version: '3.11'}
-      - run: pip install platformio
-      - run: cd firmware && pio run
+      - uses: actions/download-artifact@v4
+        with:
+          name: Snap_Go-testing
+          path: release-assets
+      - name: Validate tag
+        shell: bash
+        run: test "${GITHUB_REF_NAME}" = "v$(cat VERSION)"
+      - name: Create testing prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh release create "$GITHUB_REF_NAME" release-assets/dist/* release-assets/firmware/*.bin --verify-tag --prerelease --title "Snap_Go $GITHUB_REF_NAME — bench testing" --notes-file docs/RELEASE.md

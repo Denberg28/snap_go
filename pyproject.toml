@@ -1,24 +1,22 @@
 [build-system]
-requires = ["setuptools>=70", "wheel"]
+requires = ["setuptools==84.0.0", "wheel==0.46.3"]
 build-backend = "setuptools.build_meta"
-
 [project]
 name = "snap-go"
 version = "0.1.0"
-description = "Reliability-first Raspberry Pi + ESP32-S3 two-axis subject tracker for ArduRover"
-requires-python = ">=3.11"
-dependencies = ["flask>=3.0,<4", "pyserial>=3.5,<4"]
-
+license = {file = "LICENSE"}
+description = "Local YOLOv8n camera pan/tilt controller for Raspberry Pi and ESP32-S3"
+requires-python = ">=3.10,<3.13"
+dependencies = ["pyserial==3.5"]
 [project.optional-dependencies]
-vision = ["opencv-python-headless>=4.10,<5", "ultralytics>=8.3,<9"]
-dev = ["pytest>=8,<10", "build>=1.2,<2"]
-
+vision = ["ultralytics==8.4.31", "numpy==2.2.6", "opencv-python==4.13.0.92", "torch==2.13.0", "torchvision==0.28.0"]
+ncnn = ["ncnn==1.0.20260114"]
+dev = ["pytest==8.3.5", "build==1.2.2.post1"]
 [project.scripts]
 snap-go = "snap_go.app:main"
-
 [tool.setuptools.packages.find]
-where = ["src"]
-
+include = ["snap_go*"]
+[tool.setuptools.package-data]
+snap_go = ["static/*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"

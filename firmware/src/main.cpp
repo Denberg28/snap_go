@@ -1,85 +1,45 @@
 #include <Arduino.h>
-#include <ESP32Servo.h>
-#include <ArduinoJson.h>
-
-#ifndef PAN_PIN
-#define PAN_PIN 17
-#endif
-#ifndef TILT_PIN
-#define TILT_PIN 18
-#endif
-#ifndef PAN_MIN_DEG
-#define PAN_MIN_DEG 30
-#endif
-#ifndef PAN_MAX_DEG
-#define PAN_MAX_DEG 150
-#endif
-#ifndef TILT_MIN_DEG
-#define TILT_MIN_DEG 45
-#endif
-#ifndef TILT_MAX_DEG
-#define TILT_MAX_DEG 135
-#endif
-#ifndef COMMAND_TIMEOUT_MS
-#define COMMAND_TIMEOUT_MS 500
-#endif
-
-Servo panServo, tiltServo;
-bool attached = false;
-uint32_t lastValidMs = 0;
-
-uint32_t crc32(const uint8_t *data, size_t len) {
-  uint32_t crc = 0xFFFFFFFF;
-  while (len--) {
-    crc ^= *data++;
-    for (uint8_t k=0;k<8;k++) crc = (crc>>1) ^ (0xEDB88320 & (-(int32_t)(crc&1)));
-  }
-  return ~crc;
+#include <esp_task_wdt.h>
+#include "protocol.h"
+// Snap_Go 0.1.0. UART0 via DevKit USB-to-UART connector, not native USB CDC.
+constexpr uint8_t PAN_PIN=5, TILT_PIN=6, STOP_PIN=7;
+snap::Guard guard;
+uint8_t buffer[snap::SIZE]; size_t used=0;
+uint32_t lastTick=0;
+bool pwmStarted=false;
+void pwm(uint8_t channel,uint16_t us) { ledcWrite(channel, uint32_t(us)*65535UL/20000UL); }
+void setup() {
+  pinMode(STOP_PIN, INPUT_PULLUP);
+  ledcSetup(0,50,16);ledcSetup(1,50,16);
+  ledcAttachPin(PAN_PIN,0);ledcAttachPin(TILT_PIN,1);
+  ledcWrite(0,0);ledcWrite(1,0); // no pulses before explicit enable
+  Serial.begin(115200);
+  esp_task_wdt_init(2,true);esp_task_wdt_add(nullptr);
 }
-
-String servoMaterial(JsonObject p) {
-  return "servo|" + String(p["seq"].as<uint32_t>()) + "|" +
-         String(p["pan"].as<float>(),2) + "|" + String(p["tilt"].as<float>(),2) + "|" +
-         String((p["output"] | false) ? "1" : "0");
-}
-
-String crcHex(const String &material) {
-  char out[9];
-  snprintf(out,sizeof(out),"%08lx",(unsigned long)crc32((const uint8_t*)material.c_str(),material.length()));
-  return String(out);
-}
-
-void sendAck(uint32_t seq) {
-  String payload = "{\"seq\":" + String(seq) + ",\"type\":\"ack\"}";
-  String material = "ack|" + String(seq);
-  Serial.println("{\"payload\":" + payload + ",\"crc32\":\"" + crcHex(material) + "\"}");
-}
-
-void detachServos(){ if(attached){ panServo.detach(); tiltServo.detach(); attached=false; } }
-void attachServos(){ if(!attached){ panServo.attach(PAN_PIN,500,2500); tiltServo.attach(TILT_PIN,500,2500); attached=true; } }
-
-void setup(){ Serial.begin(115200); detachServos(); }
-
-void loop(){
-  if (Serial.available()) {
-    String line = Serial.readStringUntil('\n');
-    JsonDocument doc;
-    if (deserializeJson(doc,line)==DeserializationError::Ok && doc["payload"].is<JsonObject>() && doc["crc32"].is<const char*>()) {
-      JsonObject p=doc["payload"];
-      if (p["type"]=="servo") {
-        String material=servoMaterial(p);
-        if (crcHex(material).equalsIgnoreCase(doc["crc32"].as<const char*>())) {
-          lastValidMs=millis();
-          bool out=p["output"]|false;
-          if(out){
-            attachServos();
-            panServo.write(constrain(p["pan"].as<float>(),PAN_MIN_DEG,PAN_MAX_DEG));
-            tiltServo.write(constrain(p["tilt"].as<float>(),TILT_MIN_DEG,TILT_MAX_DEG));
-          } else detachServos();
-          sendAck(p["seq"].as<uint32_t>());
+void loop() {
+  esp_task_wdt_reset();
+  uint32_t now=millis(); bool stop=digitalRead(STOP_PIN)==LOW;
+  guard.check(now,stop);
+  // Bounded read budget: malformed input cannot starve watchdog or STOP sampling.
+  for(int budget=64;budget>0&&Serial.available();--budget) {
+    buffer[used++]=uint8_t(Serial.read());
+    if(used==snap::SIZE) {
+      snap::Command cmd;
+      if(snap::decode(buffer,cmd)) {
+        if(guard.accept(cmd,now,stop)) {
+          uint8_t reply[snap::SIZE];
+          snap::ack(reply,cmd.seq,guard.pan,guard.tilt,(guard.enabled?1:0)|(guard.fault?2:0));
+          if(Serial.availableForWrite()>=int(snap::SIZE)) Serial.write(reply,snap::SIZE);
         }
-      }
+        used=0;
+      } else { memmove(buffer,buffer+1,snap::SIZE-1);used=snap::SIZE-1; }
     }
   }
-  if(attached && millis()-lastValidMs > COMMAND_TIMEOUT_MS) detachServos();
+  if(uint32_t(now-lastTick)>=20) {
+    lastTick=now;guard.step();
+    if(guard.enabled) pwmStarted=true;
+    // Stop/timeouts hold last commanded position, avoiding a gravity-driven drop.
+    if(pwmStarted) { pwm(0,guard.pan);pwm(1,guard.tilt); }
+  }
+  delay(1);
 }

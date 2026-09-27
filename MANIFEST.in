@@ -1,0 +1,8 @@
+include VERSION README.md AGENTS.md LICENSE THIRD_PARTY_NOTICES.md CHANGELOG.md uv.lock package.json package-lock.json .env.example
+recursive-include docs *.md *.json
+recursive-include firmware *.cpp *.h *.ini
+recursive-include scripts *.py
+recursive-include tests *.py *.cpp *.cjs
+recursive-include deploy *.service
+recursive-include snap_go/static *
+prune firmware/.pio

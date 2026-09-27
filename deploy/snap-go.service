@@ -1,0 +1,25 @@
+[Unit]
+Description=Snap_Go camera mount controller
+After=network.target
+[Service]
+Type=simple
+User=snapgo
+Group=snapgo
+SupplementaryGroups=dialout video
+WorkingDirectory=/opt/snap-go
+EnvironmentFile=/etc/snap-go.env
+Environment=YOLO_CONFIG_DIR=/var/lib/snap-go/ultralytics
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/snap-go/.venv/bin/python -m snap_go.app --config /var/lib/snap-go/config.json
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=5
+StateDirectory=snap-go
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/snap-go
+UMask=0077
+[Install]
+WantedBy=multi-user.target
