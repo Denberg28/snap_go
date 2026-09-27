@@ -49,9 +49,9 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await testPage.click('#track');
   assert.match(await testPage.locator('#status').innerText(),/Synthetic target tracking/);
   await testPage.click('#toggleDetection');
-  assert.equal(await testPage.locator('#detect').innerText(),'Detection off');
+  assert.equal(await testPage.locator('#detect').innerText(),'DETECTION OFF');
   await testPage.click('#reset');
-  assert.equal(await testPage.locator('#detect').innerText(),'Detection on');
+  assert.equal(await testPage.locator('#detect').innerText(),'DETECTION ON');
   await testPage.setViewportSize({width:844,height:390});
   await testPage.selectOption('#motion','stationary');
   await testPage.waitForTimeout(50);
