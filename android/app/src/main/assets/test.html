@@ -40,6 +40,7 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
 .pan-side{grid-column:1;grid-row:2}.tilt-side{grid-column:3;grid-row:2}
 .center{grid-column:2;grid-row:1/3}
 .top-servo{grid-column:3;grid-row:1;width:100%;height:30px;align-self:start;padding:0 2px;font-size:10px;white-space:nowrap}
+.top-servo.on{background:var(--green);border-color:var(--green);color:#102a25}
 </style>
 </head>
 <body>
@@ -50,7 +51,7 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
     <div class="hud left"><span id="detect" class="badge">DETECTION ON</span></div>
     <div class="hud right"><span class="badge">OFFLINE</span><span id="position" class="readout">1500 / 1500 µs</span></div>
   </div>
-  <button id="servo" class="top-servo" aria-pressed="true">Servo on</button>
+  <button id="servo" class="top-servo on" aria-pressed="true">Servo on</button>
   <div class="side tilt-side"><strong>TILT</strong><small>up / down</small><div id="tiltStick" class="stick" role="slider" aria-label="Virtual tilt joystick" aria-valuenow="0"></div><output id="tiltValue">1500</output></div>
 </section>
 <section class="controlbar">
@@ -58,7 +59,7 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
     <button id="manual" class="active">Manual</button><button id="track">Track</button><button id="toggleDetection">Detection off</button>
     <select id="motion" aria-label="Target motion"><option value="moving">Moving target</option><option value="stationary">Stationary target</option></select>
     <button id="center">Center</button><button id="reset" class="stop">Reset</button>
-    <select id="sample" aria-label="Sample object"><option value="person">Person</option><option value="ball">Ball</option></select>
+    <select id="sample" aria-label="Sample object"><option value="person">Person</option><option value="ball">Ball</option><option value="multiple">Multiple · 3 targets</option></select>
   </div>
   <div id="status" class="status" role="status">Manual virtual pan/tilt ready.</div>
   <div class="aux-controls" aria-label="Function servos">
@@ -82,13 +83,14 @@ function mode(track){tracking=track;$('manual').classList.toggle('active',!track
 $('manual').onclick=()=>mode(false);$('track').onclick=()=>mode(true);
 $('toggleDetection').onclick=()=>{detect=!detect;$('toggleDetection').textContent=detect?'Detection off':'Detection on';$('detect').textContent=detect?'DETECTION ON':'DETECTION OFF';$('detect').classList.toggle('off',!detect);};
 $('center').onclick=()=>{pan=tilt=1500;};
-$('servo').onclick=()=>{servoOn=!servoOn;$('servo').textContent=servoOn?'Servo on':'Servo off';if(!servoOn)mode(false)};
+$('servo').onclick=()=>{servoOn=!servoOn;$('servo').textContent=servoOn?'Servo on':'Servo off';$('servo').classList.toggle('on',servoOn);$('servo').setAttribute('aria-pressed',String(servoOn));if(!servoOn)mode(false)};
 canvas.addEventListener('pointerdown',e=>{selectionStart=[e.offsetX,e.offsetY];canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointerup',e=>{if(!selectionStart)return;const [ax,ay]=selectionStart;selectionStart=null;if(Math.abs(e.offsetX-ax)<12||Math.abs(e.offsetY-ay)<12)return;const w=canvas.width,h=canvas.height,points=[[.5+.25*Math.sin(phase*.7),.5+.14*Math.sin(phase*.46)],[.2,.47],[.78+.03*Math.sin(phase*.5),.55]];const match=points.findIndex(([x,y])=>{const px=x*w-(pan-1500)*.85*w/960,py=y*h+(tilt-1500)*.85*h/540;return px>=Math.min(ax,e.offsetX)&&px<=Math.max(ax,e.offsetX)&&py>=Math.min(ay,e.offsetY)&&py<=Math.max(ay,e.offsetY)});if(match>=0){selected=match;$('status').textContent='Selected T'+(match+1)}else $('status').textContent='No target in rectangle'});
 for(let i=1;i<=3;i++)$('f'+i).onclick=()=>{functions[i-1]=!functions[i-1];const b=$('f'+i);b.classList.toggle('on',functions[i-1]);b.setAttribute('aria-pressed',String(functions[i-1]));b.textContent='F'+i+(functions[i-1]?' ON':'');};
 $('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';functions=[false,false,false];for(let i=1;i<=3;i++){const b=$('f'+i);b.classList.remove('on');b.setAttribute('aria-pressed','false');b.textContent='F'+i}for(const name of Object.keys(axis))release(name);};
 function paint(time){
  const dt=clamp((time-last)/1000,0,.05);last=time;if($('motion').value==='moving')phase+=dt;
- const width=canvas.width,height=canvas.height,kind=$('sample').value;
+ const width=canvas.width,height=canvas.height,kind=$('sample').value,activeKind=kind==='multiple'?['person','ball','square'][selected]:kind;
+ canvas.dataset.targetTypes=kind==='multiple'?'person,ball,square':kind;
  const points=[[.5+.25*Math.sin(phase*.7),.5+.14*Math.sin(phase*.46)],[.2,.47],[.78+.03*Math.sin(phase*.5),.55]];const worldX=width*points[selected][0],worldY=height*points[selected][1];
  canvas.dataset.world=Math.round(worldX)+','+Math.round(worldY);
  const scaleX=width/960,scaleY=height/540,objectScale=clamp(Math.min(scaleX,scaleY),.45,.9);
@@ -110,18 +112,33 @@ function paint(time){
  let targetHeight=0;
  if(visible){
   const s=objectScale;
-  if(kind==='person'){
+  if(activeKind==='person'){
    ctx.fillStyle='#a8bbc7';ctx.beginPath();ctx.arc(x,y-29*s,13*s,0,Math.PI*2);ctx.fill();
    ctx.fillRect(x-16*s,y-12*s,32*s,44*s);ctx.fillRect(x-13*s,y+32*s,9*s,34*s);ctx.fillRect(x+4*s,y+32*s,9*s,34*s);
-  }else{ctx.fillStyle='#f3a06c';ctx.beginPath();ctx.arc(x,y,22*s,0,Math.PI*2);ctx.fill()}
+  }else if(activeKind==='ball'){ctx.fillStyle='#f3a06c';ctx.beginPath();ctx.arc(x,y,22*s,0,Math.PI*2);ctx.fill()}
+  else{ctx.fillStyle='#e9c780';ctx.fillRect(x-22*s,y-22*s,44*s,44*s)}
   if(detect){
-   const s=objectScale,boxW=(kind==='person'?46:54)*s,boxH=(kind==='person'?124:54)*s,boxY=y-(kind==='person'?47:27)*s;
+   const s=objectScale,boxW=(activeKind==='person'?46:54)*s,boxH=(activeKind==='person'?124:54)*s,boxY=y-(activeKind==='person'?47:27)*s;
    targetHeight=boxH;ctx.strokeStyle='#6ee0bd';ctx.lineWidth=Math.max(1.5,2.4*s);ctx.strokeRect(x-boxW/2,boxY,boxW,boxH);
-   ctx.fillStyle='#6ee0bd';ctx.font='600 '+Math.max(9,Math.round(13*s))+'px sans-serif';ctx.fillText(kind+' · 0.94',clamp(x-boxW/2,8,width-105),clamp(boxY-6,14,height-8));
+   ctx.fillStyle='#6ee0bd';ctx.font='600 '+Math.max(9,Math.round(13*s))+'px sans-serif';ctx.fillText(activeKind+' · 0.94',clamp(x-boxW/2,8,width-105),clamp(boxY-6,14,height-8));
   }
  }
  canvas.dataset.targetHeight=Math.round(targetHeight);
- if(detect)points.forEach(([px,py],i)=>{if(i===selected)return;const tx=px*width-(pan-1500)*.85*scaleX,ty=py*height+(tilt-1500)*.85*scaleY;ctx.strokeStyle='#f4c86c';ctx.strokeRect(tx-18*objectScale,ty-50*objectScale,36*objectScale,100*objectScale);ctx.fillStyle='#f4c86c';ctx.font='11px sans-serif';ctx.fillText('T'+(i+1),tx-18*objectScale,ty-52*objectScale)});
+ points.forEach(([px,py],i)=>{
+  if(i===selected)return;
+  const tx=px*width-(pan-1500)*.85*scaleX,ty=py*height+(tilt-1500)*.85*scaleY,s=objectScale;
+  if(kind==='multiple'){
+   ctx.fillStyle=i===0?'#a8bbc7':i===1?'#f3a06c':'#e9c780';
+   if(i===0){ctx.beginPath();ctx.arc(tx,ty-29*s,13*s,0,Math.PI*2);ctx.fill();ctx.fillRect(tx-16*s,ty-12*s,32*s,44*s);ctx.fillRect(tx-13*s,ty+32*s,9*s,34*s);ctx.fillRect(tx+4*s,ty+32*s,9*s,34*s)}
+   else if(i===1){ctx.beginPath();ctx.arc(tx,ty,22*s,0,Math.PI*2);ctx.fill()}
+   else ctx.fillRect(tx-22*s,ty-22*s,44*s,44*s);
+  }
+  if(!detect)return;
+  const person=kind==='multiple'&&i===0,bw=(person?46:54)*s,bh=(person?124:54)*s,by=ty-(person?47:27)*s;
+  ctx.strokeStyle='#f4c86c';ctx.lineWidth=2;ctx.strokeRect(tx-bw/2,by,bw,bh);
+  ctx.fillStyle='#f4c86c';ctx.font='11px sans-serif';
+  ctx.fillText(kind==='multiple'?['person','ball','square'][i]:'T'+(i+1),tx-bw/2,by-4*s);
+ });
  ctx.strokeStyle='#6ee0bd';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(width/2-13,height/2);ctx.lineTo(width/2+13,height/2);ctx.moveTo(width/2,height/2-13);ctx.lineTo(width/2,height/2+13);ctx.stroke();
  $('position').textContent=Math.round(pan)+' / '+Math.round(tilt)+' µs';$('panValue').textContent=Math.round(pan);$('tiltValue').textContent=Math.round(tilt);requestAnimationFrame(paint);
 }

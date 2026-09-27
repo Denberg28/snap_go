@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import org.json.JSONArray;
 import android.widget.TextView;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -249,9 +250,30 @@ public final class MainActivity extends Activity {
         root.addView(stage, new LinearLayout.LayoutParams(-1, 0, 1));
         stage.addView(browser, new FrameLayout.LayoutParams(-1, -1));
         FrameLayout.LayoutParams nav = new FrameLayout.LayoutParams(
-                dp(90), dp(30), Gravity.TOP | Gravity.LEFT);
+                dp(72), dp(30), Gravity.TOP | Gravity.LEFT);
         nav.setMargins(dp(8), dp(6), 0, 0);
         stage.addView(menuButton, nav);
+    }
+
+    private void alignMenuToPan(WebView view) {
+        view.evaluateJavascript(
+                "(function(){const p=document.querySelector('.pan-side');" +
+                "if(!p)return null;const r=p.getBoundingClientRect();" +
+                "return [r.left,r.width,window.innerWidth]})()",
+                result -> {
+                    if (view != browser || menuButton == null || "null".equals(result)) return;
+                    try {
+                        JSONArray bounds = new JSONArray(result);
+                        double scale = (double) view.getWidth() / bounds.getDouble(2);
+                        FrameLayout.LayoutParams nav =
+                                (FrameLayout.LayoutParams) menuButton.getLayoutParams();
+                        nav.width = Math.max(dp(48), (int) Math.round(bounds.getDouble(1) * scale));
+                        nav.leftMargin = (int) Math.round(bounds.getDouble(0) * scale);
+                        menuButton.setLayoutParams(nav);
+                    } catch (Exception ignored) {
+                        // Keep the compact fallback until the view has measurable bounds.
+                    }
+                });
     }
 
     private void showConnect(String error) {
@@ -321,6 +343,7 @@ public final class MainActivity extends Activity {
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 applyBrowserTheme(view);
+                view.post(() -> alignMenuToPan(view));
             }
         });
         attachBrowserOverlay();
@@ -344,6 +367,7 @@ public final class MainActivity extends Activity {
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 applyBrowserTheme(view);
+                view.post(() -> alignMenuToPan(view));
             }
         });
         attachBrowserOverlay();

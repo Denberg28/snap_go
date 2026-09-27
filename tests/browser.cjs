@@ -58,6 +58,21 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await testPage.mouse.up();
   await testPage.click('#f1');
   assert.equal(await testPage.locator('#f1').getAttribute('aria-pressed'),'true');
+  await testPage.selectOption('#sample','multiple');
+  await testPage.waitForFunction(()=>document.querySelector('#scene').dataset.targetTypes==='person,ball,square');
+  assert.equal(await testPage.locator('#servo').getAttribute('aria-pressed'),'true');
+  assert.ok(await testPage.locator('#servo').evaluate(e=>e.classList.contains('on')));
+  await testPage.click('#servo');
+  assert.equal(await testPage.locator('#servo').getAttribute('aria-pressed'),'false');
+  await testPage.click('#servo');
+  await testPage.waitForTimeout(60);
+  const crowdColors=await testPage.evaluate(()=>{
+    const c=document.querySelector('#scene'),ctx=c.getContext('2d'),sx=c.width/960,sy=c.height/540;
+    const sample=(nx,ny)=>Array.from(ctx.getImageData(Math.round(nx*c.width-(pan-1500)*.85*sx),Math.round(ny*c.height+(tilt-1500)*.85*sy),1,1).data).slice(0,3);
+    return [sample(.2,.47),sample(.78+.03*Math.sin(phase*.5),.55)];
+  });
+  assert.deepEqual(crowdColors,[[243,160,108],[233,199,128]]);
+  await testPage.selectOption('#sample','person');
   await testPage.click('#track');
   assert.match(await testPage.locator('#status').innerText(),/Synthetic target tracking/);
   await testPage.click('#toggleDetection');

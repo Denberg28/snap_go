@@ -1,3 +1,7 @@
+## 0.11.3 — menu alignment and crowd scene
+- Match Android mode menu width to the PAN pane; show servo ON in green.
+- Add Multiple with a person, ball and square in Test mode.
+
 ## 0.11.2 — expanded camera layout
 - Move mode menu and servo toggle into the upper side columns; extend camera to the top of the console.
 - Clear joystick panes while retaining target drag selection.
