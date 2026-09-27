@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 — 2026-09-27 — compact navigation candidate
+
+- Replaced the full-width Live / Test / Update tab strip with a compact upper-left mode menu.
+- Reclaimed vertical space for the center preview by moving status badges into the camera pane.
+- Reduced simulated person and detection-box scale so targets no longer dominate the frame.
+- Kept navigation separate from the Manual/Track control row and retained the fixed, non-draggable preview.
+
+
 ## 0.7.0 — 2026-09-27 — fixed operator UI candidate
 
 - Locked the Android Test screen to a fixed viewport so the camera/control layout no longer drags or scrolls.

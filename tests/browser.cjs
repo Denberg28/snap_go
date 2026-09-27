@@ -62,8 +62,11 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await testPage.waitForTimeout(300);
   assert.notEqual(await testPage.locator('#scene').getAttribute('data-world'),still);
   const scene=await testPage.locator('#scene').boundingBox();
-  assert.ok(scene.height>=240,`Landscape scene too short: ${scene.height}`);
-  assert.ok(scene.width>520,`Landscape scene too narrow: ${scene.width}`);
+  assert.ok(scene.height>=280,`Landscape scene too short: ${scene.height}`);
+  assert.ok(scene.width>540,`Landscape scene too narrow: ${scene.width}`);
+  await testPage.waitForFunction(()=>Number(document.querySelector('#scene').dataset.targetHeight)>0);
+  const targetHeight=Number(await testPage.locator('#scene').getAttribute('data-target-height'));
+  assert.ok(targetHeight<scene.height*.55,`Target should not dominate frame: ${targetHeight}/${scene.height}`);
   assert.ok(await testPage.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1),'Test UI must not vertically scroll');
   assert.ok(await testPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Test UI must not horizontally scroll');
   assert.equal(await testPage.evaluate(()=>getComputedStyle(document.body).overflow),'hidden');

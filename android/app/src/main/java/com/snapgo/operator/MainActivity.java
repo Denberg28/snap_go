@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.webkit.CookieManager;
@@ -18,6 +19,7 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -112,16 +114,16 @@ public final class MainActivity extends Activity {
         return drawable;
     }
 
-    private Button topButton(String label, boolean active) {
+    private Button navButton(String label) {
         Button button = new Button(this);
         button.setText(label);
         button.setAllCaps(false);
-        button.setTextSize(14);
-        button.setTextColor(active ? Color.WHITE : Color.rgb(103, 78, 148));
+        button.setTextSize(12);
+        button.setTextColor(Color.WHITE);
         button.setBackground(rounded(
-                active ? Color.rgb(119, 87, 177) : Color.rgb(240, 235, 248),
-                active ? Color.rgb(119, 87, 177) : Color.rgb(226, 218, 239),
-                15));
+                Color.rgb(119, 87, 177),
+                Color.rgb(119, 87, 177),
+                11));
         button.setMinimumHeight(0);
         button.setMinHeight(0);
         button.setMinimumWidth(0);
@@ -130,10 +132,31 @@ public final class MainActivity extends Activity {
         return button;
     }
 
-    private LinearLayout.LayoutParams tabParams() {
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(46), 1);
-        params.setMargins(dp(4), 0, dp(4), 0);
-        return params;
+    private void showNavigationMenu(Button anchor, boolean live) {
+        PopupMenu popup = new PopupMenu(this, anchor);
+        android.view.MenuItem liveItem = popup.getMenu().add("Live");
+        android.view.MenuItem testItem = popup.getMenu().add("Test");
+        popup.getMenu().add("Check for update");
+        liveItem.setEnabled(!live);
+        testItem.setEnabled(live);
+        popup.setOnMenuItemClickListener(item -> {
+            String label = item.getTitle().toString();
+            if ("Live".equals(label)) {
+                disposeBrowser();
+                showConnect(null);
+                return true;
+            }
+            if ("Test".equals(label)) {
+                selectTest();
+                return true;
+            }
+            if ("Check for update".equals(label)) {
+                updater.check();
+                return true;
+            }
+            return false;
+        });
+        popup.show();
     }
 
     private void shell(boolean live) {
@@ -151,18 +174,14 @@ public final class MainActivity extends Activity {
                 return insets;
             });
         }
-        LinearLayout tabs = new LinearLayout(this);
-        tabs.setPadding(dp(6), dp(6), dp(6), dp(5));
-        Button liveButton = topButton("Live", live);
-        Button testButton = topButton("Test", !live);
-        Button updateButton = topButton("Update", false);
-        tabs.addView(liveButton, tabParams());
-        tabs.addView(testButton, tabParams());
-        tabs.addView(updateButton, tabParams());
-        root.addView(tabs, new LinearLayout.LayoutParams(-1, dp(57)));
-        updateButton.setOnClickListener(v -> updater.check());
-        liveButton.setOnClickListener(v -> { disposeBrowser(); showConnect(null); });
-        testButton.setOnClickListener(v -> selectTest());
+        LinearLayout navigation = new LinearLayout(this);
+        navigation.setGravity(Gravity.CENTER_VERTICAL);
+        navigation.setPadding(dp(7), dp(3), dp(7), dp(3));
+        Button menuButton = navButton(live ? "Live  ▾" : "Test  ▾");
+        LinearLayout.LayoutParams menuParams = new LinearLayout.LayoutParams(dp(96), dp(30));
+        navigation.addView(menuButton, menuParams);
+        root.addView(navigation, new LinearLayout.LayoutParams(-1, dp(36)));
+        menuButton.setOnClickListener(v -> showNavigationMenu(menuButton, live));
         setContentView(root);
         if (Build.VERSION.SDK_INT >= 35) root.requestApplyInsets();
     }

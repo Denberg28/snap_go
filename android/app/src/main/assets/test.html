@@ -5,90 +5,54 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Snap Go Test</title>
 <style>
-:root{--bg:#f8f6fc;--card:#fff;--line:#e2dceb;--text:#2a2631;--muted:#777180;--purple:#7757b1;--purpleSoft:#efe9f8;--green:#2c8b75;--greenSoft:#e8f5f1;--danger:#c86d72;--scene:#0d1821;--scene2:#173240;--target:#6ee0bd}
+:root{--bg:#f8f6fc;--card:#fff;--line:#e2dceb;--text:#2a2631;--muted:#777180;--purple:#7757b1;--purpleSoft:#efe9f8;--green:#2c8b75;--greenSoft:#e8f5f1;--scene:#0d1821}
 *{box-sizing:border-box}
 html,body{width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
-body{position:fixed;inset:0;padding:8px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:grid;grid-template-rows:36px minmax(0,1fr) 44px;gap:8px;user-select:none;-webkit-user-select:none}
-.topline{display:flex;align-items:center;gap:8px;min-width:0;padding:0 2px}
-.title{font-size:15px;font-weight:750;letter-spacing:.01em;white-space:nowrap}
-.badge{display:inline-flex;align-items:center;height:25px;padding:0 9px;border-radius:999px;border:1px solid #b8d8cf;background:var(--greenSoft);color:var(--green);font-size:10px;font-weight:700;letter-spacing:.04em;white-space:nowrap}
-.spacer{flex:1;min-width:6px}
-.position{font-size:10px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
-.console{min-width:0;min-height:0;display:grid;grid-template-columns:clamp(78px,10.5vw,100px) minmax(0,1fr) clamp(78px,10.5vw,100px);gap:8px}
+body{position:fixed;inset:0;padding:6px 8px 8px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:grid;grid-template-rows:minmax(0,1fr) 42px;gap:7px;user-select:none;-webkit-user-select:none}
+.console{min-width:0;min-height:0;display:grid;grid-template-columns:clamp(72px,9vw,90px) minmax(0,1fr) clamp(72px,9vw,90px);gap:7px}
 .side,.center,.controlbar{background:var(--card);border:1px solid var(--line);box-shadow:0 3px 12px #3d315214;border-radius:15px}
-.side{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:7px 5px;text-align:center}
-.side strong{font-size:11px;letter-spacing:.08em}
-.side small{font-size:8px;color:var(--muted);white-space:nowrap}
-.stick{width:min(72px,82%);aspect-ratio:1;border:2px solid #8467b5;border-radius:50%;background:var(--purpleSoft);position:relative;touch-action:none}
+.side{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px;text-align:center}
+.side strong{font-size:10px;letter-spacing:.08em}.side small{font-size:8px;color:var(--muted);white-space:nowrap}
+.stick{width:min(68px,82%);aspect-ratio:1;border:2px solid #8467b5;border-radius:50%;background:var(--purpleSoft);position:relative;touch-action:none}
 .stick::before{content:'';position:absolute;left:50%;top:50%;width:1px;height:62%;background:#b9a8d6;transform:translate(-50%,-50%);opacity:.45}
 #panStick::before{width:62%;height:1px}
 .stick::after{content:'';position:absolute;width:31%;height:31%;border-radius:50%;left:var(--x,50%);top:var(--y,50%);transform:translate(-50%,-50%);background:var(--purple);box-shadow:0 3px 9px #54416c45}
 output{font-size:9px;color:var(--purple);font-weight:700;font-variant-numeric:tabular-nums}
-.center{min-width:0;min-height:0;padding:5px;overflow:hidden}
+.center{position:relative;min-width:0;min-height:0;padding:5px;overflow:hidden}
 .center canvas{display:block;width:100%;height:100%;border-radius:11px;background:var(--scene);pointer-events:none;touch-action:none}
-.controlbar{min-width:0;display:flex;align-items:center;gap:6px;padding:5px 7px;overflow:hidden}
+.hud{position:absolute;top:11px;display:flex;align-items:center;gap:5px;z-index:2;pointer-events:none}
+.hud.left{left:12px}.hud.right{right:12px}
+.badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;border:1px solid #b8d8cf;background:#e8f5f1dd;color:var(--green);font-size:9px;font-weight:700;letter-spacing:.04em;white-space:nowrap;backdrop-filter:blur(6px)}
+.readout{height:22px;display:inline-flex;align-items:center;padding:0 7px;border-radius:999px;background:#101820c7;color:#d8e0e6;font-size:9px;white-space:nowrap;font-variant-numeric:tabular-nums;backdrop-filter:blur(6px)}
+#detect.off{background:#f3f0f6dd;color:var(--muted);border-color:#d9d2e1}
+.controlbar{min-width:0;display:flex;align-items:center;gap:6px;padding:4px 6px;overflow:hidden}
 .controls{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}
-button,select{height:32px;border:1px solid var(--line);border-radius:9px;background:#f4f0f8;color:#4f465b;padding:0 9px;font:inherit;font-size:10px;outline:none}
-button{font-weight:650}
-button.active{background:var(--purple);border-color:var(--purple);color:#fff}
-button.stop{background:#fff1f1;border-color:#efc5c8;color:#9f4f54}
-select{max-width:118px}
-.status{margin-left:auto;min-width:0;max-width:30vw;color:var(--muted);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#detect.off{background:#f4f0f8;color:var(--muted);border-color:var(--line)}
-@media(orientation:portrait){
- body{grid-template-rows:36px minmax(0,1fr) auto}
- .console{grid-template-columns:66px minmax(0,1fr) 66px;gap:6px}
- .side{padding:5px 3px}.side small{display:none}.stick{width:min(58px,88%)}
- .controlbar{min-height:44px;overflow:visible}.controls{flex-wrap:wrap}.status{display:none}
- button,select{height:30px;padding:0 7px;font-size:9px}
-}
-@media(orientation:landscape) and (max-height:320px){
- body{padding:5px;grid-template-rows:30px minmax(0,1fr) 38px;gap:5px}
- .title{font-size:13px}.badge{height:22px;font-size:9px}.position{font-size:9px}
- .console{grid-template-columns:72px minmax(0,1fr) 72px;gap:5px}
- .side{padding:4px 2px;gap:3px}.side small{display:none}.stick{width:min(58px,82%)}
- .controlbar{padding:3px 5px}.controls{gap:3px}button,select{height:28px;font-size:9px;padding:0 6px}.status{display:none}
-}
+button,select{height:31px;border:1px solid var(--line);border-radius:9px;background:#f4f0f8;color:#4f465b;padding:0 9px;font:inherit;font-size:10px;outline:none}
+button{font-weight:650}button.active{background:var(--purple);border-color:var(--purple);color:#fff}button.stop{background:#fff1f1;border-color:#efc5c8;color:#9f4f54}select{max-width:112px}
+.status{margin-left:auto;min-width:0;max-width:27vw;color:var(--muted);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(orientation:portrait){.console{grid-template-columns:62px minmax(0,1fr) 62px;gap:5px}.side{padding:4px 2px}.side small{display:none}.stick{width:min(54px,88%)}.controlbar{min-height:42px;overflow:visible}.controls{flex-wrap:wrap}.status{display:none}button,select{height:29px;padding:0 7px;font-size:9px}}
+@media(orientation:landscape) and (max-height:320px){body{padding:4px 6px 5px;grid-template-rows:minmax(0,1fr) 36px;gap:5px}.console{grid-template-columns:66px minmax(0,1fr) 66px;gap:5px}.side{padding:3px 2px;gap:2px}.side small{display:none}.stick{width:min(54px,82%)}.controlbar{padding:3px 5px}.controls{gap:3px}button,select{height:27px;font-size:9px;padding:0 6px}.status{display:none}.badge,.readout{height:20px;font-size:8px}}
 </style>
 </head>
 <body>
-<div class="topline">
-  <div class="title">Snap Go · Test</div>
-  <span id="detect" class="badge">DETECTION ON</span>
-  <div class="spacer"></div>
-  <span class="badge">OFFLINE SIMULATION</span>
-  <span id="position" class="position">Pan 1500 · Tilt 1500 µs</span>
-</div>
-
 <section class="console">
-  <div class="side">
-    <strong>PAN</strong><small>left / right</small>
-    <div id="panStick" class="stick" role="slider" aria-label="Virtual pan joystick" aria-valuenow="0"></div>
-    <output id="panValue">1500</output>
-  </div>
+  <div class="side"><strong>PAN</strong><small>left / right</small><div id="panStick" class="stick" role="slider" aria-label="Virtual pan joystick" aria-valuenow="0"></div><output id="panValue">1500</output></div>
   <div class="center" id="fixedPreview">
     <canvas id="scene" width="960" height="540" aria-label="Synthetic camera scene"></canvas>
+    <div class="hud left"><span id="detect" class="badge">DETECTION ON</span></div>
+    <div class="hud right"><span class="badge">OFFLINE</span><span id="position" class="readout">1500 / 1500 µs</span></div>
   </div>
-  <div class="side">
-    <strong>TILT</strong><small>up / down</small>
-    <div id="tiltStick" class="stick" role="slider" aria-label="Virtual tilt joystick" aria-valuenow="0"></div>
-    <output id="tiltValue">1500</output>
-  </div>
+  <div class="side"><strong>TILT</strong><small>up / down</small><div id="tiltStick" class="stick" role="slider" aria-label="Virtual tilt joystick" aria-valuenow="0"></div><output id="tiltValue">1500</output></div>
 </section>
-
 <section class="controlbar">
   <div class="controls">
-    <button id="manual" class="active">Manual</button>
-    <button id="track">Track</button>
-    <button id="toggleDetection">Detection off</button>
+    <button id="manual" class="active">Manual</button><button id="track">Track</button><button id="toggleDetection">Detection off</button>
     <select id="motion" aria-label="Target motion"><option value="moving">Moving target</option><option value="stationary">Stationary target</option></select>
-    <button id="center">Center</button>
-    <button id="reset" class="stop">Reset</button>
+    <button id="center">Center</button><button id="reset" class="stop">Reset</button>
     <select id="sample" aria-label="Sample object"><option value="person">Person</option><option value="ball">Ball</option></select>
   </div>
   <div id="status" class="status" role="status">Manual virtual pan/tilt ready.</div>
 </section>
-
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
@@ -101,8 +65,7 @@ function setAxis(name,e){const a=axis[name],r=a.el.getBoundingClientRect(),offse
 function release(name){const a=axis[name];a.value=0;a.id=null;a.el.style.setProperty(name==='pan'?'--x':'--y','50%');a.el.setAttribute('aria-valuenow','0');}
 for(const name of Object.keys(axis)){const a=axis[name];a.el.addEventListener('pointerdown',e=>{e.preventDefault();a.id=e.pointerId;a.el.setPointerCapture(e.pointerId);setAxis(name,e)});a.el.addEventListener('pointermove',e=>{if(a.id===e.pointerId)setAxis(name,e)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])a.el.addEventListener(ev,e=>{if(a.id===e.pointerId)release(name)})}
 function mode(track){tracking=track;$('manual').classList.toggle('active',!track);$('track').classList.toggle('active',track);$('status').textContent=track?'Synthetic target tracking active.':'Manual virtual pan/tilt ready.';}
-$('manual').onclick=()=>mode(false);
-$('track').onclick=()=>mode(true);
+$('manual').onclick=()=>mode(false);$('track').onclick=()=>mode(true);
 $('toggleDetection').onclick=()=>{detect=!detect;$('toggleDetection').textContent=detect?'Detection off':'Detection on';$('detect').textContent=detect?'DETECTION ON':'DETECTION OFF';$('detect').classList.toggle('off',!detect);};
 $('center').onclick=()=>{pan=tilt=1500;};
 $('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';for(const name of Object.keys(axis))release(name);};
@@ -111,7 +74,7 @@ function paint(time){
  const width=canvas.width,height=canvas.height,kind=$('sample').value;
  const worldX=width*(.5+.25*Math.sin(phase*.7)),worldY=height*(.5+.14*Math.sin(phase*.46));
  canvas.dataset.world=Math.round(worldX)+','+Math.round(worldY);
- const scaleX=width/960,scaleY=height/540;
+ const scaleX=width/960,scaleY=height/540,objectScale=clamp(Math.min(scaleX,scaleY),.45,.9);
  let x=worldX-(pan-1500)*.85*scaleX,y=worldY+(tilt-1500)*.85*scaleY;
  const visible=x>width*.05&&x<width*.95&&y>height*.05&&y<height*.95;
  if(tracking){
@@ -126,21 +89,23 @@ function paint(time){
  x=worldX-(pan-1500)*.85*scaleX;y=worldY+(tilt-1500)*.85*scaleY;
  canvas.dataset.error=Math.round(Math.hypot((x-width/2)/scaleX,(y-height/2)/scaleY));
  ctx.fillStyle='#0d1821';ctx.fillRect(0,0,width,height);ctx.fillStyle='#173240';ctx.fillRect(0,height*.70,width,height*.30);
- ctx.strokeStyle='#244655';ctx.lineWidth=1;
- for(let gx=0;gx<width;gx+=48){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,height);ctx.stroke()}
- for(let gy=0;gy<height;gy+=48){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(width,gy);ctx.stroke()}
+ ctx.strokeStyle='#244655';ctx.lineWidth=1;for(let gx=0;gx<width;gx+=48){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,height);ctx.stroke()}for(let gy=0;gy<height;gy+=48){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(width,gy);ctx.stroke()}
+ let targetHeight=0;
  if(visible){
-  if(kind==='person'){ctx.fillStyle='#a8bbc7';ctx.beginPath();ctx.arc(x,y-30,15,0,Math.PI*2);ctx.fill();ctx.fillRect(x-19,y-12,38,52);ctx.fillRect(x-16,y+40,11,38);ctx.fillRect(x+5,y+40,11,38)}
-  else{ctx.fillStyle='#f3a06c';ctx.beginPath();ctx.arc(x,y,27,0,Math.PI*2);ctx.fill()}
+  const s=objectScale;
+  if(kind==='person'){
+   ctx.fillStyle='#a8bbc7';ctx.beginPath();ctx.arc(x,y-29*s,13*s,0,Math.PI*2);ctx.fill();
+   ctx.fillRect(x-16*s,y-12*s,32*s,44*s);ctx.fillRect(x-13*s,y+32*s,9*s,34*s);ctx.fillRect(x+4*s,y+32*s,9*s,34*s);
+  }else{ctx.fillStyle='#f3a06c';ctx.beginPath();ctx.arc(x,y,22*s,0,Math.PI*2);ctx.fill()}
   if(detect){
-   const halfW=kind==='person'?27:33,halfH=kind==='person'?90:33;
-   ctx.strokeStyle='#6ee0bd';ctx.lineWidth=3;ctx.strokeRect(x-halfW,y-(kind==='person'?52:halfH),halfW*2,halfH*2);
-   ctx.fillStyle='#6ee0bd';ctx.font='600 14px sans-serif';ctx.fillText(kind+' · 0.94',clamp(x-halfW,8,width-120),clamp(y-(kind==='person'?65:47),18,height-8));
+   const s=objectScale,boxW=(kind==='person'?46:54)*s,boxH=(kind==='person'?124:54)*s,boxY=y-(kind==='person'?47:27)*s;
+   targetHeight=boxH;ctx.strokeStyle='#6ee0bd';ctx.lineWidth=Math.max(1.5,2.4*s);ctx.strokeRect(x-boxW/2,boxY,boxW,boxH);
+   ctx.fillStyle='#6ee0bd';ctx.font='600 '+Math.max(9,Math.round(13*s))+'px sans-serif';ctx.fillText(kind+' · 0.94',clamp(x-boxW/2,8,width-105),clamp(boxY-6,14,height-8));
   }
  }
+ canvas.dataset.targetHeight=Math.round(targetHeight);
  ctx.strokeStyle='#6ee0bd';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(width/2-13,height/2);ctx.lineTo(width/2+13,height/2);ctx.moveTo(width/2,height/2-13);ctx.lineTo(width/2,height/2+13);ctx.stroke();
- $('position').textContent='Pan '+Math.round(pan)+' · Tilt '+Math.round(tilt)+' µs';$('panValue').textContent=Math.round(pan);$('tiltValue').textContent=Math.round(tilt);
- requestAnimationFrame(paint);
+ $('position').textContent=Math.round(pan)+' / '+Math.round(tilt)+' µs';$('panValue').textContent=Math.round(pan);$('tiltValue').textContent=Math.round(tilt);requestAnimationFrame(paint);
 }
 requestAnimationFrame(paint);
 </script>
