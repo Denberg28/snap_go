@@ -32,14 +32,12 @@ public final class MainActivity extends Activity {
     private boolean switching = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private AppUpdater updater;
+    private boolean darkTheme = false;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        getWindow().setStatusBarColor(Color.rgb(248, 246, 252));
-        getWindow().setNavigationBarColor(Color.rgb(248, 246, 252));
-        int systemUi = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-        if (Build.VERSION.SDK_INT >= 26) systemUi |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-        getWindow().getDecorView().setSystemUiVisibility(systemUi);
+        darkTheme = getPreferences(MODE_PRIVATE).getBoolean("dark_theme", false);
+        applySystemTheme();
         updater = new AppUpdater(this);
         if (state != null && state.getBoolean("test_mode", false)) showTest();
         else showConnect(null);
@@ -100,6 +98,34 @@ public final class MainActivity extends Activity {
             stopControl();
             handler.postDelayed(() -> { switching = false; disposeBrowser(); showTest(); }, 500);
         } else { disposeBrowser(); showTest(); }
+    }
+
+    private void applySystemTheme() {
+        int background = darkTheme ? Color.rgb(12, 20, 27) : Color.rgb(248, 246, 252);
+        getWindow().setStatusBarColor(background);
+        getWindow().setNavigationBarColor(background);
+        int systemUi = 0;
+        if (!darkTheme) {
+            systemUi |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            if (Build.VERSION.SDK_INT >= 26) systemUi |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
+        getWindow().getDecorView().setSystemUiVisibility(systemUi);
+    }
+
+    private void applyBrowserTheme(WebView view) {
+        if (view == null) return;
+        String theme = darkTheme ? "dark" : "light";
+        view.evaluateJavascript("document.documentElement.dataset.theme='" + theme + "';", null);
+    }
+
+    private void setTheme(boolean dark, Button themeButton) {
+        darkTheme = dark;
+        getPreferences(MODE_PRIVATE).edit().putBoolean("dark_theme", darkTheme).apply();
+        applySystemTheme();
+        if (root != null) root.setBackgroundColor(
+                darkTheme ? Color.rgb(12, 20, 27) : Color.rgb(248, 246, 252));
+        if (themeButton != null) themeButton.setText(darkTheme ? "☀" : "☾");
+        applyBrowserTheme(browser);
     }
 
     private int dp(float value) {
@@ -165,7 +191,7 @@ public final class MainActivity extends Activity {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.rgb(248, 246, 252));
+        root.setBackgroundColor(darkTheme ? Color.rgb(12, 20, 27) : Color.rgb(248, 246, 252));
         if (Build.VERSION.SDK_INT >= 35) {
             root.setOnApplyWindowInsetsListener((view, insets) -> {
                 android.graphics.Insets safe = insets.getInsets(
@@ -180,6 +206,20 @@ public final class MainActivity extends Activity {
         Button menuButton = navButton(live ? "Live  ▾" : "Test  ▾");
         LinearLayout.LayoutParams menuParams = new LinearLayout.LayoutParams(dp(96), dp(30));
         navigation.addView(menuButton, menuParams);
+        Button themeButton = null;
+        if (live) {
+            themeButton = navButton(darkTheme ? "☀" : "☾");
+            themeButton.setContentDescription(darkTheme ? "Switch to light theme" : "Switch to dark theme");
+            LinearLayout.LayoutParams themeParams = new LinearLayout.LayoutParams(dp(38), dp(30));
+            themeParams.setMargins(dp(6), 0, 0, 0);
+            navigation.addView(themeButton, themeParams);
+            Button finalThemeButton = themeButton;
+            themeButton.setOnClickListener(v -> {
+                setTheme(!darkTheme, finalThemeButton);
+                finalThemeButton.setContentDescription(
+                        darkTheme ? "Switch to light theme" : "Switch to dark theme");
+            });
+        }
         root.addView(navigation, new LinearLayout.LayoutParams(-1, dp(36)));
         menuButton.setOnClickListener(v -> showNavigationMenu(menuButton, live));
         setContentView(root);
@@ -192,14 +232,16 @@ public final class MainActivity extends Activity {
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(24, 18, 24, 24);
         TextView title = new TextView(this);
-        title.setText("Snap Go · Pi connection"); title.setTextSize(22); title.setTextColor(Color.rgb(42, 38, 49));
+        title.setText("Snap Go · Pi connection"); title.setTextSize(22);
+        title.setTextColor(darkTheme ? Color.WHITE : Color.rgb(42, 38, 49));
         form.addView(title);
         TextView hint = new TextView(this);
         hint.setText("Connect phone and Pi to the same trusted Wi-Fi. Start Snap Go on the Pi with --host 0.0.0.0. Test works offline without a Pi.");
-        hint.setTextColor(Color.rgb(111, 105, 120)); form.addView(hint);
+        hint.setTextColor(darkTheme ? Color.LTGRAY : Color.rgb(111, 105, 120)); form.addView(hint);
         EditText address = new EditText(this);
-        address.setSingleLine(true); address.setTextColor(Color.rgb(42, 38, 49));
-        address.setHintTextColor(Color.rgb(145, 138, 154));
+        address.setSingleLine(true);
+        address.setTextColor(darkTheme ? Color.WHITE : Color.rgb(42, 38, 49));
+        address.setHintTextColor(darkTheme ? Color.GRAY : Color.rgb(145, 138, 154));
         address.setHint("http://192.168.1.50:8080");
         address.setText(getPreferences(MODE_PRIVATE).getString("pi_address", ""));
         form.addView(address);
@@ -221,7 +263,7 @@ public final class MainActivity extends Activity {
 
     private WebView newBrowser(boolean network) {
         WebView view = new WebView(this);
-        view.setBackgroundColor(network ? Color.rgb(12, 20, 27) : Color.rgb(248, 246, 252));
+        view.setBackgroundColor(darkTheme ? Color.rgb(12, 20, 27) : Color.rgb(248, 246, 252));
         view.setOverScrollMode(View.OVER_SCROLL_NEVER);
         view.setVerticalScrollBarEnabled(false);
         view.setHorizontalScrollBarEnabled(false);
@@ -250,6 +292,10 @@ public final class MainActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
                 return !request.getUrl().toString().equals(selected + "/");
             }
+            @Override public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                applyBrowserTheme(view);
+            }
         });
         root.addView(browser, new LinearLayout.LayoutParams(-1, 0, 1));
         changePi.setOnClickListener(v -> selectConnection());
@@ -269,6 +315,10 @@ public final class MainActivity extends Activity {
         browser.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
                 return true;
+            }
+            @Override public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                applyBrowserTheme(view);
             }
         });
         root.addView(browser, new LinearLayout.LayoutParams(-1, 0, 1));
