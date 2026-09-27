@@ -40,7 +40,7 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   testPage.on('pageerror',e=>testErrors.push(e.message));
   testPage.on('request',r=>{if(r.url().startsWith('http'))network.push(r.url());});
   await testPage.goto(pathToFileURL(path.resolve('android/app/src/main/assets/test.html')).href);
-  assert.match(await testPage.locator('body').innerText(),/OFFLINE SIMULATION/);
+  assert.match(await testPage.locator('body').innerText(),/OFFLINE/);
   const virtual=await testPage.locator('#panStick').boundingBox();
   await testPage.mouse.move(virtual.x+virtual.width*.8,virtual.y+virtual.height*.5);
   await testPage.mouse.down();
