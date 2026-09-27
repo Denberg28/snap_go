@@ -1,3 +1,3 @@
-# First APK build
+# Android testing build
 
-Release candidate v0.1.0 builds the debug APK on GitHub Actions. Hardware qualification remains pending.
+Version 0.11.0 crowd target testing candidate. Source and layout require Android CI compilation and device review.
