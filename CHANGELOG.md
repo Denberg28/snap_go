@@ -1,3 +1,6 @@
+## 0.11.1 — layout and touch fix
+- Restore Test canvas drag selection and fit side pane buttons.
+
 ## 0.11.0 — crowd target testing build
 - Three target candidates, rectangle selection, Drop target and servo control layout.
 

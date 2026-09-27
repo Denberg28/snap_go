@@ -1,3 +1,6 @@
+## 0.11.1 layout correction
+Touch selection and button widths corrected; Android and device review pending.
+
 ## 0.11.0 testing build
 Python control and JS syntax checked. Android and hardware checks pending.
 
