@@ -1,5 +1,9 @@
 # Verification record — 2026-09-27
 
+## Signing setup follow-up
+
+The Android release workflow now accepts separate keystore/key passwords, a configurable alias and an expected signing-certificate SHA-256 fingerprint. The APK is checked against that fingerprint before publication. GitHub repository signing secrets and variables are not configured yet; the owner must provide and back up a long-lived signing key before the first stable update. The debug APK retains a disposable signing identity.
+
 ## 0.6.0 camera-focused test candidate
 
 The landscape virtual camera now occupies the available height and full center width, with compact side sticks and wrapping controls. Synthetic tracking uses a small center deadband and bounded pan/tilt rates, with on-screen virtual center error. The moving target may lag a little while crossing the scene; a stationary target should settle within the deadband. GitHub Actions CI run 36317462641 passed browser/Pi/firmware checks; Android run 36317462663 passed debug build and disposable-key release-signing verification. APK ZIP CRC passed, includes bundled Test asset, size 26,119 bytes, SHA-256 `a1816f5e6d3809d64132bbf9829d562db6f418fed2ab3bb32fd30d36c99556b2`. Physical tracking performance depends on camera field of view, inference latency, servo speed and calibration; virtual values are not hardware measurements.

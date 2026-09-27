@@ -16,8 +16,8 @@ android {
             val keyFile = System.getenv("SNAP_GO_KEYSTORE_FILE")
             if (keyFile != null) storeFile = file(keyFile)
             storePassword = System.getenv("SNAP_GO_SIGNING_PASSWORD")
-            keyAlias = "snapgo"
-            keyPassword = System.getenv("SNAP_GO_SIGNING_PASSWORD")
+            keyAlias = System.getenv("SNAP_GO_KEY_ALIAS") ?: "snapgo"
+            keyPassword = System.getenv("SNAP_GO_KEY_PASSWORD") ?: System.getenv("SNAP_GO_SIGNING_PASSWORD")
         }
     }
     buildTypes {
