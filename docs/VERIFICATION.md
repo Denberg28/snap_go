@@ -1,5 +1,9 @@
 # Verification record — 2026-09-27
 
+## 0.2.0 control-layout candidate
+
+Two-axis touch control with spring-return joysticks and camera center pane added. The Pi API now has manual HOLD, setting the target to the current commanded PWM when a stick is released. Hardware direction and response must be measured against actual servo horn geometry; numeric pulse direction alone does not establish camera-left/right/up/down. Android build, browser interaction, Pi deployment and hardware acceptance are pending for this version.
+
 ## Follow-up review (software only)
 
 Android operator app added with local Pi address entry, dashboard access, background STOP request and debug APK CI workflow. GitHub Actions run 36312512126 built and uploaded `app-debug.apk` from commit 3355bc0; the downloaded APK is 10,509 bytes, ZIP CRC passed, and SHA-256 is `288e38b1114ecf3e427111eef09cc0a9984720b421492df326ee1ceb5ea91b60`. Installation and all phone/Pi connection flows remain unverified until physical testing.

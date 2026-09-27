@@ -87,7 +87,7 @@ public final class MainActivity extends Activity {
         origin = selected;
         root.removeAllViews();
         Button disconnect = new Button(this);
-        disconnect.setText("Stop and change Pi");
+        disconnect.setText("⚙ Pi connection");
         root.addView(disconnect);
         browser = new WebView(this);
         browser.setBackgroundColor(Color.WHITE);

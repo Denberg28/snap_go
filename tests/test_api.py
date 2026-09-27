@@ -50,6 +50,8 @@ def test_operator_flow_persistence_and_lease(app):
         call(url + "/api/control", {"action": "move", "pan": 1600, "tilt": 1500})[0]
         == 200
     )
+    assert call(url + "/api/control", {"action": "hold"})[0] == 200
+    assert r.control.target == [r.control.pan, r.control.tilt]
     assert (
         call(url + "/api/control", {"action": "move", "pan": 9999, "tilt": 1500})[0]
         == 400

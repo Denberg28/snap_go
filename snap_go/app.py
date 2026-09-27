@@ -160,6 +160,10 @@ class Runtime:
                     ):
                         raise ValueError("Manual target outside calibration limits")
                 c.target = values
+            elif op == "hold":
+                if not c.enabled or c.mode != "manual":
+                    raise ValueError("Enable manual control first")
+                c.target = [c.pan, c.tilt]
             elif op == "config":
                 if c.enabled:
                     raise ValueError("Disable before saving calibration")

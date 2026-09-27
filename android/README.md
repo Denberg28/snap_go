@@ -1,6 +1,8 @@
-# Snap Go Android operator · 0.1.0
+# Snap Go Android operator · 0.2.0
 
 Android 8+ app for the Pi's existing dashboard. The phone communicates with the Pi over local Wi-Fi; the Pi alone communicates with the ESP32-S3 over USB. The app does not control ArduRover drive or arm state.
+
+Version 0.2.0 shows two touch joysticks around the camera feed on the matching Pi dashboard. Pan is left/right and tilt is up/down; release requests HOLD. Settings contains the Pi token, mount calibration, and tracking configuration. The native **Pi connection** button changes the server address. The app reads the dashboard from the Pi, so update the Pi installation alongside the APK.
 
 ## Install and connect
 
