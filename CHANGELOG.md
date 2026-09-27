@@ -1,3 +1,27 @@
+## 0.11.5 — preserve selected object types
+- Show Person, Ball, and Square together by default in Multiple mode.
+- Keep each object's shape and label when selecting it by drawing a rectangle; omit extra boxes in single-object modes.
+- Verify ball and square selection and tracking controls in the browser.
+
+## 0.11.4 — target selection and tracking controls
+- Show the drawn selection rectangle in offline Test mode and select the closest target within it.
+- Stop tracking when detection or servo output is disabled; keep Track button state consistent and reset selection.
+- Verify selection, servo and tracking state changes in browser checks.
+
+## 0.11.3 — menu alignment and crowd scene
+- Match Android mode menu width to the PAN pane; show servo ON in green.
+- Add Multiple with a person, ball and square in Test mode.
+
+## 0.11.2 — expanded camera layout
+- Move mode menu and servo toggle into the upper side columns; extend camera to the top of the console.
+- Clear joystick panes while retaining target drag selection.
+
+## 0.11.1 — layout and touch fix
+- Restore Test canvas drag selection and fit side pane buttons.
+
+## 0.11.0 — crowd target testing build
+- Three target candidates, rectangle selection, Drop target and servo control layout.
+
 # Changelog
 
 ## 0.10.0 — 2026-09-27 — live operator + function servos

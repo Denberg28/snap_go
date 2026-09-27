@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <esp_task_wdt.h>
 #include "protocol.h"
-// Snap_Go 0.10.0. UART0 via DevKit USB-to-UART connector, not native USB CDC.
+// Snap_Go 0.11.5. UART0 via DevKit USB-to-UART connector, not native USB CDC.
 constexpr uint8_t PAN_PIN=5, TILT_PIN=6, STOP_PIN=7;
 constexpr uint8_t F1_PIN=8, F2_PIN=9, F3_PIN=10;
 constexpr uint16_t FUNCTION_US=1500;

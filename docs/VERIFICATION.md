@@ -1,3 +1,15 @@
+## 0.11.3 scene check
+Menu bounds are measured from the WebView PAN pane; Test Multiple renders three types. CI and device check pending.
+
+## 0.11.2 UI layout
+Mode menu overlays the upper PAN column; Servo toggle occupies the upper TILT column. Camera spans both console rows. Android device layout and gesture validation pending.
+
+## 0.11.1 layout correction
+Touch selection and button widths corrected; Android and device review pending.
+
+## 0.11.0 testing build
+Python control and JS syntax checked. Android and hardware checks pending.
+
 # Verification record — 2026-09-27
 
 ## 0.7.0 fixed operator UI candidate

@@ -1,1 +1,1 @@
-{"name":"snap-go-ui-checks","private":true,"version":"0.10.0","devDependencies":{"playwright":"1.58.2"},"scripts":{"test":"node tests/browser.cjs"}}
+{"name":"snap-go-ui-checks","private":true,"version":"0.11.5","devDependencies":{"playwright":"1.58.2"},"scripts":{"test":"node tests/browser.cjs"}}
