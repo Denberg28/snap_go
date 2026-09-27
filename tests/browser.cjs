@@ -31,7 +31,7 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await page.waitForFunction(()=>document.querySelector('#panStick').getAttribute('aria-valuenow')==='0');
   await page.click('#stop');await page.waitForFunction(()=>document.querySelector('#armed').textContent==='DISABLED');
   await page.click('#openSettings');await page.fill('[name=confidence]','0.6');await page.click('#save');await page.click('#closeSettings');
-  await page.selectOption('#mode','track');await page.click('#enable');await page.waitForFunction(()=>document.querySelector('#armed').textContent==='ENABLED');
+  await page.click('#track');await page.click('#enable');await page.waitForFunction(()=>document.querySelector('#armed').textContent==='ENABLED');
   await page.click('#openSettings');await page.locator('#faultControls summary').click();await page.click('[data-fault=target]');
   await page.waitForFunction(()=>document.querySelector('#message').textContent.includes('Target lost'));
   await page.click('[data-fault=none]');
