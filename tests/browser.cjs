@@ -61,6 +61,15 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   await testPage.selectOption('#motion','moving');
   await testPage.waitForTimeout(300);
   assert.notEqual(await testPage.locator('#scene').getAttribute('data-world'),still);
+  const scene=await testPage.locator('#scene').boundingBox();
+  assert.ok(scene.height>=240,`Landscape scene too short: ${scene.height}`);
+  assert.ok(scene.width>440,`Landscape scene too narrow: ${scene.width}`);
+  await testPage.click('#track');
+  await testPage.waitForFunction(()=>Number(document.querySelector('#scene').dataset.error)<70,null,{timeout:6000});
+  await testPage.waitForTimeout(1200);
+  assert.ok(Number(await testPage.locator('#scene').getAttribute('data-error'))<70,'Moving target should remain near center while tracking');
+  await testPage.selectOption('#motion','stationary');
+  await testPage.waitForFunction(()=>Number(document.querySelector('#scene').dataset.error)<14,null,{timeout:5000});
   assert.deepEqual(testErrors,[]);assert.deepEqual(network,[]);
   assert.ok(await testPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   console.log('Offline test scene passed: virtual joystick, synthetic tracking, moving/stationary target, reset, landscape layout; zero network requests');

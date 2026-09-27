@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 — 2026-09-27 — bench-testing candidate
+
+- Enlarged the landscape Test camera scene and compacted adjacent controls.
+- Simulated bounded pan/tilt tracking that keeps a moving target near the center with a small deadband and displayed virtual error.
+
 ## 0.1.0 — 2026-09-27 — bench-testing candidate
 
 - New Raspberry Pi YOLOv8n webcam worker with latest-frame capture and stale-result rejection.

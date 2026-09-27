@@ -1,5 +1,9 @@
 # Verification record — 2026-09-27
 
+## 0.6.0 camera-focused test candidate
+
+The landscape virtual camera now occupies the available height and full center width, with compact side sticks and wrapping controls. Synthetic tracking uses a small center deadband and bounded pan/tilt rates, with on-screen virtual center error. The moving target may lag a little while crossing the scene; a stationary target should settle within the deadband. Browser and APK CI results pending. Physical tracking performance depends on camera field of view, inference latency, servo speed and calibration; virtual values are not hardware measurements.
+
 ## 0.5.0 landscape test candidate
 
 Test mode now requests landscape and restores its mode after Android configuration changes. Android 15+ applies system bar and display cutout insets to the native root to prevent tabs from sitting under status icons. The bundled scene has a compact landscape layout and Moving/Stationary target selector. Stationary freezes world target motion while leaving manual pan/tilt and synthetic tracking usable. Android workflow 36315096711 passed debug and disposable-key signing builds. CI 36315099240 passed browser landscape and motion checks plus Pi/firmware tests. APK ZIP CRC passed; size 25,851 bytes and SHA-256 `869d22d35cc6d064495125b12823404f5369adf2f238f4a50da3657816ad4ee8`. Native rotation, safe padding and real mechanism direction still need device inspection.
