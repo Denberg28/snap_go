@@ -2,7 +2,7 @@
 
 ## 0.4.0 update candidate
 
-Manual update checker and stable release signing workflow added. The app uses public GitHub release metadata, requires a digest, validates downloaded bytes/package/version/signing certificate and opens Android's installer. No repository token is embedded. Debug APK build and code review gates pending. The signing secrets have not been configured and no public signed release exists, so an in-place update cannot yet be exercised. User must install first stable signed release after removing any ephemeral-key debug build.
+Manual update checker and stable release signing workflow added. The app uses public GitHub release metadata, requires a digest, validates downloaded bytes/package/version/signing certificate and opens Android's installer. No repository token is embedded. Android build 36314438916 passed both debug compilation and a release-signing check with a disposable CI key; debug APK ZIP CRC passed, size 24,775 bytes and SHA-256 `cb44de85ff5fa500caa93b87d3ec910c5cf879191a4b21af0c1886ae615d5526`. CI run 36314442447 passed the Pi/browser/firmware verification. The permanent signing secrets have not been configured and no public signed release exists, so an in-place update cannot yet be exercised. User must install the first stable signed release after removing any ephemeral-key debug build.
 
 ## 0.3.0 Live/Test candidate
 
