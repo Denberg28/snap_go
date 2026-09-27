@@ -3,6 +3,8 @@ const {chromium}=require('playwright');
 const {spawn}=require('node:child_process');
 const assert=require('node:assert/strict');
 const {randomBytes}=require('node:crypto');
+const {pathToFileURL}=require('node:url');
+const path=require('node:path');
 const token=randomBytes(32).toString('hex');
 const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate','--port','8089','--config','/tmp/snap-go-browser-config.json'],{env:{...process.env,SNAP_GO_TOKEN:token},stdio:'ignore'});
 (async()=>{
@@ -33,5 +35,25 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await page.screenshot({path:'/tmp/snap-go-mobile.png',fullPage:true});
   assert.deepEqual(errors,[]);console.log('Browser flow passed: auth, manual, stop, calibration, tracking loss, mobile layout; no JS errors');
+  const testPage=await browser.newPage({viewport:{width:390,height:844}});
+  const testErrors=[],network=[];
+  testPage.on('pageerror',e=>testErrors.push(e.message));
+  testPage.on('request',r=>{if(r.url().startsWith('http'))network.push(r.url());});
+  await testPage.goto(pathToFileURL(path.resolve('android/app/src/main/assets/test.html')).href);
+  assert.match(await testPage.locator('body').innerText(),/OFFLINE SIMULATION/);
+  const virtual=await testPage.locator('#panStick').boundingBox();
+  await testPage.mouse.move(virtual.x+virtual.width*.8,virtual.y+virtual.height*.5);
+  await testPage.mouse.down();
+  await testPage.waitForFunction(()=>Number(document.querySelector('#panValue').textContent)>1510);
+  await testPage.mouse.up();
+  await testPage.click('#track');
+  assert.match(await testPage.locator('#status').innerText(),/Synthetic target tracking/);
+  await testPage.click('#toggleDetection');
+  assert.equal(await testPage.locator('#detect').innerText(),'Detection off');
+  await testPage.click('#reset');
+  assert.equal(await testPage.locator('#detect').innerText(),'Detection on');
+  assert.deepEqual(testErrors,[]);assert.deepEqual(network,[]);
+  assert.ok(await testPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  console.log('Offline test scene passed: virtual joystick, synthetic tracking, detection toggle, reset, mobile layout; zero network requests');
  }finally{if(browser)await browser.close();proc.kill('SIGTERM');}
 })().catch(e=>{console.error(e);proc.kill('SIGTERM');process.exitCode=1;});

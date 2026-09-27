@@ -1,5 +1,9 @@
 # Verification record — 2026-09-27
 
+## 0.3.0 Live/Test candidate
+
+Android LIVE connects to the Pi dashboard; TEST loads a bundled self-contained HTML simulation with virtual pan/tilt, synthetic person/ball boxes and target following. The local test scene contains no Pi API connection and is labeled offline simulation. Switching from LIVE requests STOP and waits briefly before discarding the live page; the Pi lease and ESP32 watchdog remain independent fallbacks. Browser and APK build gates are pending. A test scene is not evidence of real YOLO inference, camera movement, PWM direction or physical safety; these still require on-device checks.
+
 ## 0.2.0 control-layout candidate
 
 Two-axis touch control with spring-return joysticks and camera center pane added. The Pi API now has manual HOLD, setting the target to the current commanded PWM when a stick is released. GitHub Actions Android run 36313056442 succeeded and produced the debug APK; downloaded APK ZIP CRC passed, size 10,509 bytes and SHA-256 `171316d2dd1f6154ceb641a1ecabf362141e1f4f3a670d21966bc2b09bbd7f2c`. CI run 36313058496 succeeded, including API, browser, firmware and packaging checks. Hardware direction and response must be measured against actual servo horn geometry; numeric pulse direction alone does not establish camera-left/right/up/down. Pi deployment and physical phone/servo testing remain open.

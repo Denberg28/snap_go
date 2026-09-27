@@ -1,8 +1,10 @@
-# Snap Go Android operator · 0.2.0
+# Snap Go Android operator · 0.3.0
 
 Android 8+ app for the Pi's existing dashboard. The phone communicates with the Pi over local Wi-Fi; the Pi alone communicates with the ESP32-S3 over USB. The app does not control ArduRover drive or arm state.
 
-Version 0.2.0 shows two touch joysticks around the camera feed on the matching Pi dashboard. Pan is left/right and tilt is up/down; release requests HOLD. Settings contains the Pi token, mount calibration, and tracking configuration. The native **Pi connection** button changes the server address. The app reads the dashboard from the Pi, so update the Pi installation alongside the APK.
+Version 0.3.0 adds **LIVE / TEST** tabs. TEST runs a bundled offline virtual camera scene with sample person/ball detection boxes, manual pan/tilt joysticks and synthetic target following. It sends no requests and cannot move the actual mechanism. LIVE connects to the matching Pi 0.3.0 server, shows the webcam and runs actual YOLO tracking after operator enable. Switching to TEST requests STOP before removing the live screen; the Pi's control lease is the fallback if the request fails. Returning to LIVE requires reconnecting and enabling again.
+
+Version 0.3.0 shows two touch joysticks around the camera feed on the matching Pi dashboard. Pan is left/right and tilt is up/down; release requests HOLD. Settings contains the Pi token, mount calibration, and tracking configuration. The native **Pi connection** button changes the server address. The app reads the dashboard from the Pi, so update the Pi installation alongside the APK.
 
 ## Install and connect
 

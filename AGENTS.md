@@ -6,7 +6,7 @@ Read README.md, docs/SPEC.md, docs/CONTINUITY.md and docs/VERIFICATION.md first.
 - Maintain fixed-width protocol1 interoperability; update Python/C++ tests together.
 - Never expand pulse/velocity limits without calibration evidence. ACK is not physical feedback.
 - Never add credentials, model binaries, recordings or private images to git.
-- Version is0.1.0 in VERSION, pyproject.toml, Python, firmware comment and static UI. Run scripts/check_versions.py.
+- Version must match VERSION, pyproject.toml, Python, firmware comment, Android and static UI. Run scripts/check_versions.py.
 - Test from repository root: python -m pytest -q; node --check snap_go/static/app.js; python -m platformio run -d firmware.
 - Write actual results and untested gates to docs/VERIFICATION.md; do not call simulation hardware validation.
 - Keep changes scoped, lightweight and offline after provisioning. Pin dependencies and regenerate uv.lock.
