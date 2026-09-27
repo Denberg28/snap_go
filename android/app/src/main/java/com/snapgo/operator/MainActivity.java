@@ -2,8 +2,10 @@ package com.snapgo.operator;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.ViewGroup;
@@ -14,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.view.WindowInsets;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -28,8 +31,16 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        getWindow().setStatusBarColor(Color.rgb(12, 20, 27));
+        getWindow().setNavigationBarColor(Color.rgb(12, 20, 27));
         updater = new AppUpdater(this);
-        showConnect(null);
+        if (state != null && state.getBoolean("test_mode", false)) showTest();
+        else showConnect(null);
+    }
+
+    @Override protected void onSaveInstanceState(Bundle state) {
+        state.putBoolean("test_mode", !livePage);
+        super.onSaveInstanceState(state);
     }
 
     private static boolean privateHost(String host) {
@@ -87,9 +98,19 @@ public final class MainActivity extends Activity {
 
     private void shell(boolean live) {
         livePage = live;
+        setRequestedOrientation(live ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT :
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(12, 20, 27));
+        if (Build.VERSION.SDK_INT >= 35) {
+            root.setOnApplyWindowInsetsListener((view, insets) -> {
+                android.graphics.Insets safe = insets.getInsets(
+                        WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+                view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+                return insets;
+            });
+        }
         LinearLayout tabs = new LinearLayout(this);
         tabs.setPadding(10, 8, 10, 8);
         Button liveButton = new Button(this);
@@ -108,6 +129,7 @@ public final class MainActivity extends Activity {
         liveButton.setOnClickListener(v -> { disposeBrowser(); showConnect(null); });
         testButton.setOnClickListener(v -> selectTest());
         setContentView(root);
+        if (Build.VERSION.SDK_INT >= 35) root.requestApplyInsets();
     }
 
     private void showConnect(String error) {

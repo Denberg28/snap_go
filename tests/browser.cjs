@@ -52,8 +52,17 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   assert.equal(await testPage.locator('#detect').innerText(),'Detection off');
   await testPage.click('#reset');
   assert.equal(await testPage.locator('#detect').innerText(),'Detection on');
+  await testPage.setViewportSize({width:844,height:390});
+  await testPage.selectOption('#motion','stationary');
+  await testPage.waitForTimeout(50);
+  const still=await testPage.locator('#scene').getAttribute('data-world');
+  await testPage.waitForTimeout(300);
+  assert.equal(await testPage.locator('#scene').getAttribute('data-world'),still);
+  await testPage.selectOption('#motion','moving');
+  await testPage.waitForTimeout(300);
+  assert.notEqual(await testPage.locator('#scene').getAttribute('data-world'),still);
   assert.deepEqual(testErrors,[]);assert.deepEqual(network,[]);
   assert.ok(await testPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-  console.log('Offline test scene passed: virtual joystick, synthetic tracking, detection toggle, reset, mobile layout; zero network requests');
+  console.log('Offline test scene passed: virtual joystick, synthetic tracking, moving/stationary target, reset, landscape layout; zero network requests');
  }finally{if(browser)await browser.close();proc.kill('SIGTERM');}
 })().catch(e=>{console.error(e);proc.kill('SIGTERM');process.exitCode=1;});

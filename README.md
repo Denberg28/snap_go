@@ -1,12 +1,12 @@
-# Snap_Go · 0.4.0
+# Snap_Go · 0.5.0
 
 Android operator app source and APK build instructions: [`android/README.md`](android/README.md). It uses the existing Pi dashboard and control lease; the Pi remains the only ESP32 controller.
 
-Android 0.4.0 adds a manual **Check for update** button. It checks verified public GitHub releases and hands installation to Android. A stable release signing key must be configured once as repository Actions secrets; see [`docs/UPDATES.md`](docs/UPDATES.md). No personal access token is placed in the app.
+Android 0.4.0 added a manual **Check for update** button. It checks verified public GitHub releases and hands installation to Android. A stable release signing key must be configured once as repository Actions secrets; see [`docs/UPDATES.md`](docs/UPDATES.md). No personal access token is placed in the app.
 
 Android 0.3.0 added **LIVE / TEST** tabs. TEST opens a bundled offline sample scene for virtual pan, tilt and synthetic person/ball detections. It does not connect to the Pi or drive physical servos. LIVE uses the Pi webcam, YOLO model and ESP32 with explicit enable. Switching out of LIVE requests STOP and a return to LIVE requires reconnection and another explicit enable.
 
-The control layout places a pan joystick left of the camera and a tilt joystick right of it. Both return to neutral on release and request HOLD. Open **Settings** to connect, choose calibration limits and tracking class. The APK displays the dashboard served by the Pi, so install the matching 0.4.0 Pi software to see this layout.
+The control layout places a pan joystick left of the camera and a tilt joystick right of it. Both return to neutral on release and request HOLD. Open **Settings** to connect, choose calibration limits and tracking class. The APK displays the dashboard served by the Pi, so install the matching 0.5.0 Pi software to see this layout.
 
 Local, two-servo webcam pan/tilt tracking for a rover: **USB webcam → Raspberry Pi 4B (YOLOv8n) → USB serial → ESP32-S3 → pan + tilt servos**.
 
@@ -71,7 +71,7 @@ Supply servos from a **separate regulated BEC matched to their voltage and combi
 
 ## ArduRover compatibility
 
-v0.4.0 is an **independent camera payload**. It does not send MAVLink, change ArduRover parameters, claim a flight-controller serial port, arm/disarm the rover, or control driving. The two servo signals connect only to the ESP32; do not wire a flight-controller PWM output onto the same signals. This works alongside an ArduRover vehicle without depending on its firmware version. It is **not yet a MAVLink gimbal device** and has no attitude stabilization, RC takeover, or mission ROI support. These are explicit future integration work, not hidden prerequisites.
+v0.5.0 is an **independent camera payload**. It does not send MAVLink, change ArduRover parameters, claim a flight-controller serial port, arm/disarm the rover, or control driving. The two servo signals connect only to the ESP32; do not wire a flight-controller PWM output onto the same signals. This works alongside an ArduRover vehicle without depending on its firmware version. It is **not yet a MAVLink gimbal device** and has no attitude stabilization, RC takeover, or mission ROI support. These are explicit future integration work, not hidden prerequisites.
 
 ## Tracking behavior
 
@@ -107,4 +107,4 @@ python -c "from ultralytics import YOLO; YOLO('models/yolov8n.pt').export(format
 python -m snap_go.app --model models/yolov8n_ncnn_model --serial /dev/serial/by-id/YOUR_ESP32
 ```
 
-Export may download its conversion tools; complete it before offline use. This alternative is not benchmarked or hardware-qualified in v0.4.0. It retains the same stale-frame deadline rather than weakening failsafes to hide slow inference.
+Export may download its conversion tools; complete it before offline use. This alternative is not benchmarked or hardware-qualified in v0.5.0. It retains the same stale-frame deadline rather than weakening failsafes to hide slow inference.
