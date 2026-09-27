@@ -1,5 +1,9 @@
 # Verification record — 2026-09-27
 
+## 0.4.0 update candidate
+
+Manual update checker and stable release signing workflow added. The app uses public GitHub release metadata, requires a digest, validates downloaded bytes/package/version/signing certificate and opens Android's installer. No repository token is embedded. Debug APK build and code review gates pending. The signing secrets have not been configured and no public signed release exists, so an in-place update cannot yet be exercised. User must install first stable signed release after removing any ephemeral-key debug build.
+
 ## 0.3.0 Live/Test candidate
 
 Android LIVE connects to the Pi dashboard; TEST loads a bundled self-contained HTML simulation with virtual pan/tilt, synthetic person/ball boxes and target following. The local test scene contains no Pi API connection and is labeled offline simulation. Switching from LIVE requests STOP and waits briefly before discarding the live page; the Pi lease and ESP32 watchdog remain independent fallbacks. GitHub Actions Android build 36313604005 passed and produced a signed debug APK, 16,143 bytes, SHA-256 `09f72c169c57d246049f602169d386c4dca2d81df2bd6e36f5aeccec9e68e052`; the APK ZIP CRC passed and includes `assets/test.html`. CI 36313606327 passed, including browser interaction tests for manual virtual pan, target mode, detection toggle, reset, mobile layout and zero network requests from the scene. A test scene is not evidence of real YOLO inference, camera movement, PWM direction or physical safety; these still require on-device checks.

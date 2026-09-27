@@ -24,9 +24,11 @@ public final class MainActivity extends Activity {
     private boolean livePage = true;
     private boolean switching = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private AppUpdater updater;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        updater = new AppUpdater(this);
         showConnect(null);
     }
 
@@ -63,6 +65,8 @@ public final class MainActivity extends Activity {
                 "if (typeof releaseAll === 'function') releaseAll(); if (typeof state !== 'undefined' && state?.enabled) queued({action:'stop'});", null);
     }
 
+    void stopForUpdate() { stopControl(); }
+
     private void disposeBrowser() {
         if (browser == null) return;
         ViewGroup parent = (ViewGroup) browser.getParent();
@@ -96,7 +100,11 @@ public final class MainActivity extends Activity {
         testButton.setEnabled(live);
         tabs.addView(liveButton, new LinearLayout.LayoutParams(0, -2, 1));
         tabs.addView(testButton, new LinearLayout.LayoutParams(0, -2, 1));
+        Button updateButton = new Button(this);
+        updateButton.setText("↻ Update");
+        tabs.addView(updateButton, new LinearLayout.LayoutParams(0, -2, 1));
         root.addView(tabs);
+        updateButton.setOnClickListener(v -> updater.check());
         liveButton.setOnClickListener(v -> { disposeBrowser(); showConnect(null); });
         testButton.setOnClickListener(v -> selectTest());
         setContentView(root);
@@ -197,8 +205,14 @@ public final class MainActivity extends Activity {
         super.onPause();
     }
 
+    @Override protected void onResume() {
+        super.onResume();
+        if (updater != null) updater.resumePendingInstall();
+    }
+
     @Override protected void onDestroy() {
         handler.removeCallbacksAndMessages(null);
+        if (updater != null) updater.close();
         stopControl();
         disposeBrowser();
         super.onDestroy();
