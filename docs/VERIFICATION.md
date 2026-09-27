@@ -2,7 +2,7 @@
 
 ## 0.3.0 Live/Test candidate
 
-Android LIVE connects to the Pi dashboard; TEST loads a bundled self-contained HTML simulation with virtual pan/tilt, synthetic person/ball boxes and target following. The local test scene contains no Pi API connection and is labeled offline simulation. Switching from LIVE requests STOP and waits briefly before discarding the live page; the Pi lease and ESP32 watchdog remain independent fallbacks. Browser and APK build gates are pending. A test scene is not evidence of real YOLO inference, camera movement, PWM direction or physical safety; these still require on-device checks.
+Android LIVE connects to the Pi dashboard; TEST loads a bundled self-contained HTML simulation with virtual pan/tilt, synthetic person/ball boxes and target following. The local test scene contains no Pi API connection and is labeled offline simulation. Switching from LIVE requests STOP and waits briefly before discarding the live page; the Pi lease and ESP32 watchdog remain independent fallbacks. GitHub Actions Android build 36313604005 passed and produced a signed debug APK, 16,143 bytes, SHA-256 `09f72c169c57d246049f602169d386c4dca2d81df2bd6e36f5aeccec9e68e052`; the APK ZIP CRC passed and includes `assets/test.html`. CI 36313606327 passed, including browser interaction tests for manual virtual pan, target mode, detection toggle, reset, mobile layout and zero network requests from the scene. A test scene is not evidence of real YOLO inference, camera movement, PWM direction or physical safety; these still require on-device checks.
 
 ## 0.2.0 control-layout candidate
 
