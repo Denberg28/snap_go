@@ -12,6 +12,14 @@ On a trusted computer create and securely back up one keystore **outside Git**:
 keytool -genkeypair -keystore snapgo-release.jks -alias snapgo -keyalg RSA -keysize 3072 -validity 10000
 ```
 
+On Windows, run that command in PowerShell from a private folder outside the repository. After creating the keystore, use this PowerShell command to copy its single-line base64 value (it is a **secret**; paste it only into the GitHub secret field):
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path .\snapgo-release.jks))) | Set-Clipboard
+```
+
+Then clear the clipboard after entering the GitHub secret. If `keytool` is not on PATH, run it from the JDK `bin` folder.
+
 The keystore and key passwords may differ. Back both up with the `.jks` file. In the repository Settings → Secrets and variables → Actions, add these **repository secrets**:
 
 | Name | Value |

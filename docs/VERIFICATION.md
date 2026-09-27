@@ -2,7 +2,7 @@
 
 ## Signing setup follow-up
 
-The Android release workflow now accepts separate keystore/key passwords, a configurable alias and an expected signing-certificate SHA-256 fingerprint. The APK is checked against that fingerprint before publication. GitHub repository signing secrets and variables are not configured yet; the owner must provide and back up a long-lived signing key before the first stable update. The debug APK retains a disposable signing identity.
+The Android release workflow now accepts separate keystore/key passwords, a configurable alias and an expected signing-certificate SHA-256 fingerprint. The APK is checked against that fingerprint before publication. CI runs 36319654168 (project tests) and 36319654144 (debug APK and disposable-key signing path) passed. GitHub has `SNAP_GO_KEY_ALIAS=snapgo`, but its three signing secrets and certificate fingerprint variable are absent as of 2026-09-27 20:42 Asia/Manila. The owner must provide and back up a long-lived signing key before the first stable update. The debug APK retains a disposable signing identity.
 
 ## 0.6.0 camera-focused test candidate
 
