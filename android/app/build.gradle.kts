@@ -8,8 +8,8 @@ android {
         applicationId = "com.snapgo.operator"
         minSdk = 26
         targetSdk = 35
-        versionCode = 14
-        versionName = "0.11.3"
+        versionCode = 15
+        versionName = "0.11.4"
     }
     signingConfigs {
         create("snapGoRelease") {

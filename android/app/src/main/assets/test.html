@@ -20,7 +20,7 @@ body{position:fixed;inset:0;padding:6px 8px 8px;background:var(--bg);color:var(-
 .stick::after{content:'';position:absolute;width:31%;height:31%;border-radius:50%;left:var(--x,50%);top:var(--y,50%);transform:translate(-50%,-50%);background:var(--purple);box-shadow:0 3px 9px #54416c45}
 output{font-size:9px;color:var(--purple);font-weight:700;font-variant-numeric:tabular-nums}
 .center{position:relative;min-width:0;min-height:0;padding:5px;overflow:hidden}
-.center canvas{display:block;width:100%;height:100%;border-radius:11px;background:var(--scene);touch-action:none}
+.selection-rect{position:absolute;border:2px dashed #6ee0bd;background:#6ee0bd24;pointer-events:none;z-index:3}.selection-rect[hidden]{display:none}.center canvas{display:block;width:100%;height:100%;border-radius:11px;background:var(--scene);touch-action:none}
 .hud{position:absolute;top:11px;display:flex;align-items:center;gap:5px;z-index:2;pointer-events:none}
 .hud.left{left:12px}.hud.right{right:12px}
 .badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;border:1px solid #b8d8cf;background:#e8f5f1dd;color:var(--green);font-size:9px;font-weight:700;letter-spacing:.04em;white-space:nowrap;backdrop-filter:blur(6px)}
@@ -47,7 +47,7 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
 <section class="console">
   <div class="side pan-side"><strong>PAN</strong><small>left / right</small><div id="panStick" class="stick" role="slider" aria-label="Virtual pan joystick" aria-valuenow="0"></div><output id="panValue">1500</output></div>
   <div class="center" id="fixedPreview">
-    <canvas id="scene" width="960" height="540" aria-label="Synthetic camera scene"></canvas>
+    <canvas id="scene" width="960" height="540" aria-label="Synthetic camera scene; drag to draw a rectangle around a target"></canvas><div id="selectionRect" class="selection-rect" hidden aria-hidden="true"></div>
     <div class="hud left"><span id="detect" class="badge">DETECTION ON</span></div>
     <div class="hud right"><span class="badge">OFFLINE</span><span id="position" class="readout">1500 / 1500 µs</span></div>
   </div>
@@ -71,22 +71,31 @@ button{font-weight:650}button.active{background:var(--purple);border-color:var(-
 <script>
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
-let pan=1500,tilt=1500,tracking=false,detect=true,phase=0,last=performance.now(),functions=[false,false,false],selected=0,servoOn=true,selectionStart=null;
+let pan=1500,tilt=1500,tracking=false,detect=true,phase=0,last=performance.now(),functions=[false,false,false],selected=0,servoOn=true,selectionStart=null,selectionPointer=null;
 const axis={pan:{el:$('panStick'),value:0,id:null},tilt:{el:$('tiltStick'),value:0,id:null}};
 function sizeScene(){const bounds=canvas.getBoundingClientRect();canvas.width=Math.max(1,Math.round(bounds.width));canvas.height=Math.max(1,Math.round(bounds.height));}
 new ResizeObserver(sizeScene).observe(canvas);sizeScene();
 function clamp(x,lo,hi){return Math.max(lo,Math.min(hi,x));}
 function setAxis(name,e){const a=axis[name],r=a.el.getBoundingClientRect(),offset=name==='pan'?e.clientX-r.left-r.width/2:r.top+r.height/2-e.clientY;const v=clamp(offset/(r.width*.33),-1,1);a.value=Math.abs(v)<.12?0:v;a.el.style.setProperty(name==='pan'?'--x':'--y',(50+(name==='pan'?1:-1)*a.value*32)+'%');a.el.setAttribute('aria-valuenow',String(Math.round(a.value*100)));}
 function release(name){const a=axis[name];a.value=0;a.id=null;a.el.style.setProperty(name==='pan'?'--x':'--y','50%');a.el.setAttribute('aria-valuenow','0');}
-for(const name of Object.keys(axis)){const a=axis[name];a.el.addEventListener('pointerdown',e=>{e.preventDefault();a.id=e.pointerId;a.el.setPointerCapture(e.pointerId);setAxis(name,e)});a.el.addEventListener('pointermove',e=>{if(a.id===e.pointerId)setAxis(name,e)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])a.el.addEventListener(ev,e=>{if(a.id===e.pointerId)release(name)})}
-function mode(track){tracking=track;$('manual').classList.toggle('active',!track);$('track').classList.toggle('active',track);$('status').textContent=track?'Synthetic target tracking active.':'Manual virtual pan/tilt ready.';}
+for(const name of Object.keys(axis)){const a=axis[name];a.el.addEventListener('pointerdown',e=>{if(!servoOn||tracking)return;e.preventDefault();a.id=e.pointerId;a.el.setPointerCapture(e.pointerId);setAxis(name,e)});a.el.addEventListener('pointermove',e=>{if(a.id===e.pointerId)setAxis(name,e)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])a.el.addEventListener(ev,e=>{if(a.id===e.pointerId)release(name)})}
+function mode(track){if(track&&(!servoOn||!detect)){tracking=false;$('status').textContent=!servoOn?'Turn Servo on to track.':'Turn detection on to track.';$('manual').classList.add('active');$('track').classList.remove('active');return}tracking=track;$('manual').classList.toggle('active',!track);$('track').classList.toggle('active',track);$('status').textContent=track?'Synthetic target tracking active.':'Manual virtual pan/tilt ready.';}
 $('manual').onclick=()=>mode(false);$('track').onclick=()=>mode(true);
-$('toggleDetection').onclick=()=>{detect=!detect;$('toggleDetection').textContent=detect?'Detection off':'Detection on';$('detect').textContent=detect?'DETECTION ON':'DETECTION OFF';$('detect').classList.toggle('off',!detect);};
+$('toggleDetection').onclick=()=>{detect=!detect;$('toggleDetection').textContent=detect?'Detection off':'Detection on';$('detect').textContent=detect?'DETECTION ON':'DETECTION OFF';$('detect').classList.toggle('off',!detect);if(!detect&&tracking){mode(false);$('status').textContent='Detection off · tracking stopped.'}};
 $('center').onclick=()=>{pan=tilt=1500;};
-$('servo').onclick=()=>{servoOn=!servoOn;$('servo').textContent=servoOn?'Servo on':'Servo off';$('servo').classList.toggle('on',servoOn);$('servo').setAttribute('aria-pressed',String(servoOn));if(!servoOn)mode(false)};
-canvas.addEventListener('pointerdown',e=>{selectionStart=[e.offsetX,e.offsetY];canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointerup',e=>{if(!selectionStart)return;const [ax,ay]=selectionStart;selectionStart=null;if(Math.abs(e.offsetX-ax)<12||Math.abs(e.offsetY-ay)<12)return;const w=canvas.width,h=canvas.height,points=[[.5+.25*Math.sin(phase*.7),.5+.14*Math.sin(phase*.46)],[.2,.47],[.78+.03*Math.sin(phase*.5),.55]];const match=points.findIndex(([x,y])=>{const px=x*w-(pan-1500)*.85*w/960,py=y*h+(tilt-1500)*.85*h/540;return px>=Math.min(ax,e.offsetX)&&px<=Math.max(ax,e.offsetX)&&py>=Math.min(ay,e.offsetY)&&py<=Math.max(ay,e.offsetY)});if(match>=0){selected=match;$('status').textContent='Selected T'+(match+1)}else $('status').textContent='No target in rectangle'});
+$('servo').onclick=()=>{servoOn=!servoOn;$('servo').textContent=servoOn?'Servo on':'Servo off';$('servo').classList.toggle('on',servoOn);$('servo').setAttribute('aria-pressed',String(servoOn));if(!servoOn){mode(false);for(const name of Object.keys(axis))release(name);$('status').textContent='Servo off · controls held.'}};
+function canvasPoint(e){const r=canvas.getBoundingClientRect();return {x:clamp(e.clientX-r.left,0,r.width),y:clamp(e.clientY-r.top,0,r.height),w:r.width,h:r.height}}
+function drawSelection(e){const a=selectionStart,b=canvasPoint(e),box=$('selectionRect');box.hidden=false;box.style.left=canvas.offsetLeft+Math.min(a.x,b.x)+'px';box.style.top=canvas.offsetTop+Math.min(a.y,b.y)+'px';box.style.width=Math.abs(a.x-b.x)+'px';box.style.height=Math.abs(a.y-b.y)+'px'}
+function clearSelection(){selectionStart=null;selectionPointer=null;$('selectionRect').hidden=true}
+canvas.addEventListener('pointerdown',e=>{if(!detect)return;e.preventDefault();selectionPointer=e.pointerId;selectionStart=canvasPoint(e);canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(selectionPointer===e.pointerId)drawSelection(e)});
+canvas.addEventListener('pointerup',e=>{if(selectionPointer!==e.pointerId)return;const a=selectionStart,b=canvasPoint(e);clearSelection();if(Math.abs(b.x-a.x)<12||Math.abs(b.y-a.y)<12){$('status').textContent='Draw a square around a target.';return}const w=b.w,h=b.h,scaleX=w/960,scaleY=h/540,points=[[.5+.25*Math.sin(phase*.7),.5+.14*Math.sin(phase*.46)],[.2,.47],[.78+.03*Math.sin(phase*.5),.55]];
+ const hits=points.map(([x,y],i)=>({i,x:x*w-(pan-1500)*.85*scaleX,y:y*h+(tilt-1500)*.85*scaleY})).filter(p=>p.x>=Math.min(a.x,b.x)&&p.x<=Math.max(a.x,b.x)&&p.y>=Math.min(a.y,b.y)&&p.y<=Math.max(a.y,b.y));
+ hits.sort((p,q)=>Math.hypot(p.x-(a.x+b.x)/2,p.y-(a.y+b.y)/2)-Math.hypot(q.x-(a.x+b.x)/2,q.y-(a.y+b.y)/2));
+ if(hits.length){selected=hits[0].i;canvas.dataset.selected='T'+(selected+1);$('status').textContent='Selected T'+(selected+1)+' · '+($('sample').value==='multiple'?['person','ball','square'][selected]:$('sample').value)}else $('status').textContent='No target in rectangle.'});
+canvas.addEventListener('pointercancel',clearSelection);
 for(let i=1;i<=3;i++)$('f'+i).onclick=()=>{functions[i-1]=!functions[i-1];const b=$('f'+i);b.classList.toggle('on',functions[i-1]);b.setAttribute('aria-pressed',String(functions[i-1]));b.textContent='F'+i+(functions[i-1]?' ON':'');};
-$('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';functions=[false,false,false];for(let i=1;i<=3;i++){const b=$('f'+i);b.classList.remove('on');b.setAttribute('aria-pressed','false');b.textContent='F'+i}for(const name of Object.keys(axis))release(name);};
+$('reset').onclick=()=>{mode(false);detect=true;$('toggleDetection').textContent='Detection off';$('detect').textContent='DETECTION ON';$('detect').classList.remove('off');pan=tilt=1500;phase=0;$('motion').value='moving';functions=[false,false,false];for(let i=1;i<=3;i++){const b=$('f'+i);b.classList.remove('on');b.setAttribute('aria-pressed','false');b.textContent='F'+i}for(const name of Object.keys(axis))release(name);selected=0;canvas.dataset.selected='T1';clearSelection();};
 function paint(time){
  const dt=clamp((time-last)/1000,0,.05);last=time;if($('motion').value==='moving')phase+=dt;
  const width=canvas.width,height=canvas.height,kind=$('sample').value,activeKind=kind==='multiple'?['person','ball','square'][selected]:kind;

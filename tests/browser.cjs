@@ -64,6 +64,9 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
   assert.ok(await testPage.locator('#servo').evaluate(e=>e.classList.contains('on')));
   await testPage.click('#servo');
   assert.equal(await testPage.locator('#servo').getAttribute('aria-pressed'),'false');
+  await testPage.click('#track');
+  assert.equal(await testPage.locator('#track').evaluate(e=>e.classList.contains('active')),false);
+  assert.match(await testPage.locator('#status').innerText(),/Turn Servo on/);
   await testPage.click('#servo');
   await testPage.waitForTimeout(60);
   const crowdColors=await testPage.evaluate(()=>{
@@ -72,13 +75,26 @@ const proc=spawn(process.env.PYTHON||'python3',['-m','snap_go.app','--simulate',
     return [sample(.2,.47),sample(.78+.03*Math.sin(phase*.5),.55)];
   });
   assert.deepEqual(crowdColors,[[243,160,108],[233,199,128]]);
+  await testPage.selectOption('#motion','stationary');
+  const canvasBox=await testPage.locator('#scene').boundingBox();
+  await testPage.mouse.move(canvasBox.x+canvasBox.width*.14,canvasBox.y+canvasBox.height*.39);
+  await testPage.mouse.down();
+  await testPage.mouse.move(canvasBox.x+canvasBox.width*.26,canvasBox.y+canvasBox.height*.55,{steps:4});
+  assert.equal(await testPage.isVisible('#selectionRect'),true);
+  await testPage.mouse.up();
+  assert.equal(await testPage.isVisible('#selectionRect'),false);
+  assert.equal(await testPage.locator('#scene').getAttribute('data-selected'),'T2');
   await testPage.selectOption('#sample','person');
   await testPage.click('#track');
   assert.match(await testPage.locator('#status').innerText(),/Synthetic target tracking/);
   await testPage.click('#toggleDetection');
   assert.equal(await testPage.locator('#detect').innerText(),'DETECTION OFF');
+  assert.equal(await testPage.locator('#track').evaluate(e=>e.classList.contains('active')),false);
+  await testPage.click('#track');
+  assert.match(await testPage.locator('#status').innerText(),/Turn detection on/);
   await testPage.click('#reset');
   assert.equal(await testPage.locator('#detect').innerText(),'DETECTION ON');
+  assert.equal(await testPage.locator('#scene').getAttribute('data-selected'),'T1');
   await testPage.setViewportSize({width:844,height:390});
   await testPage.selectOption('#motion','stationary');
   await testPage.waitForTimeout(50);

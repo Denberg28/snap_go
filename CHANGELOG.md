@@ -1,3 +1,8 @@
+## 0.11.4 — target selection and tracking controls
+- Show the drawn selection rectangle in offline Test mode and select the closest target within it.
+- Stop tracking when detection or servo output is disabled; keep Track button state consistent and reset selection.
+- Verify selection, servo and tracking state changes in browser checks.
+
 ## 0.11.3 — menu alignment and crowd scene
 - Match Android mode menu width to the PAN pane; show servo ON in green.
 - Add Multiple with a person, ball and square in Test mode.
