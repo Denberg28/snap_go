@@ -2,7 +2,7 @@
 
 ## 0.6.0 camera-focused test candidate
 
-The landscape virtual camera now occupies the available height and full center width, with compact side sticks and wrapping controls. Synthetic tracking uses a small center deadband and bounded pan/tilt rates, with on-screen virtual center error. The moving target may lag a little while crossing the scene; a stationary target should settle within the deadband. Browser and APK CI results pending. Physical tracking performance depends on camera field of view, inference latency, servo speed and calibration; virtual values are not hardware measurements.
+The landscape virtual camera now occupies the available height and full center width, with compact side sticks and wrapping controls. Synthetic tracking uses a small center deadband and bounded pan/tilt rates, with on-screen virtual center error. The moving target may lag a little while crossing the scene; a stationary target should settle within the deadband. GitHub Actions CI run 36317462641 passed browser/Pi/firmware checks; Android run 36317462663 passed debug build and disposable-key release-signing verification. APK ZIP CRC passed, includes bundled Test asset, size 26,119 bytes, SHA-256 `a1816f5e6d3809d64132bbf9829d562db6f418fed2ab3bb32fd30d36c99556b2`. Physical tracking performance depends on camera field of view, inference latency, servo speed and calibration; virtual values are not hardware measurements.
 
 ## 0.5.0 landscape test candidate
 
