@@ -214,8 +214,8 @@ final class AppUpdater {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW)
                 .setDataAndType(uri, "application/vnd.android.package-archive")
-                .setClipData(ClipData.newUri(activity.getContentResolver(), "Snap Go update", uri))
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setClipData(ClipData.newUri(activity.getContentResolver(), "Snap Go update", uri));
             activity.startActivity(intent);
         } catch (Exception ex) { report("Android could not open the installer."); }
     }

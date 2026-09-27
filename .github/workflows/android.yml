@@ -26,6 +26,15 @@ jobs:
       - name: Build debug APK
         working-directory: android
         run: gradle --no-daemon assembleDebug
+      - name: Verify release signing path with disposable CI key
+        working-directory: android
+        run: |
+          keytool -genkeypair -keystore "$RUNNER_TEMP/ci-test.jks" -alias snapgo \
+            -storepass ci-only-password -keypass ci-only-password -dname "CN=Snap Go CI" \
+            -keyalg RSA -keysize 2048 -validity 1 -noprompt
+          SNAP_GO_KEYSTORE_FILE="$RUNNER_TEMP/ci-test.jks" SNAP_GO_SIGNING_PASSWORD=ci-only-password \
+            gradle --no-daemon assembleRelease
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify app/build/outputs/apk/release/app-release.apk
       - uses: actions/upload-artifact@v4
         with:
           name: snap-go-operator-debug

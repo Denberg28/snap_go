@@ -2,6 +2,7 @@ plugins { id("com.android.application") }
 
 android {
     namespace = "com.snapgo.operator"
+    buildFeatures { buildConfig = true }
     compileSdk = 35
     defaultConfig {
         applicationId = "com.snapgo.operator"
